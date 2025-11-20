@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ActivityIcon, CalendarIcon, ChartBarIcon, ClipboardListIcon, SettingsIcon } from './Icons';
 import { Logo } from './Logo';
@@ -11,7 +12,7 @@ interface NavigationProps {
 
 const navItems: { id: View; label: string; icon: React.FC<React.SVGProps<SVGSVGElement>> }[] = [
     { id: 'log', label: 'سجل التمارين', icon: ActivityIcon },
-    { id: 'calendar', label: 'التقويم', icon: CalendarIcon },
+    { id: 'calendar', label: 'أرشيف التمارين', icon: CalendarIcon },
     { id: 'diet', label: 'البرنامج الغذائي', icon: ClipboardListIcon },
     { id: 'progress', label: 'التقدم', icon: ChartBarIcon },
     { id: 'settings', label: 'الإعدادات', icon: SettingsIcon },

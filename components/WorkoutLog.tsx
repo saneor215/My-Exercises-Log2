@@ -246,44 +246,46 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, onDeleteEntry, onUp
               </button>
           </div>
 
-          {/* Quick Filters */}
-          <div className="flex flex-col gap-3">
+          {/* Quick Filters - Centered & Improved */}
+          <div className="flex flex-col gap-4 mt-2">
                 {/* Body Part Icons Filter */}
-                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                     <button
-                        onClick={() => setSelectedPartFilter('all')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${
-                            selectedPartFilter === 'all'
-                            ? 'bg-white text-gray-900 shadow-lg scale-105'
-                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                        }`}
-                    >
-                        الكل
-                    </button>
-                    {bodyParts.map(part => (
+                <div className="flex justify-center w-full">
+                    <div className="flex gap-3 overflow-x-auto pb-2 px-4 no-scrollbar max-w-full items-center">
                         <button
-                            key={part.id}
-                            onClick={() => setSelectedPartFilter(part.id)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${
-                                selectedPartFilter === part.id
-                                ? `bg-gradient-to-r ${part.gradient} text-white shadow-lg scale-105`
-                                : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                            onClick={() => setSelectedPartFilter('all')}
+                            className={`flex flex-shrink-0 items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
+                                selectedPartFilter === 'all'
+                                ? 'bg-white text-gray-900 shadow-lg scale-105 ring-2 ring-blue-400'
+                                : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white'
                             }`}
                         >
-                            <span>{part.icon}</span>
-                            <span>{part.name}</span>
+                            الكل
                         </button>
-                    ))}
+                        {bodyParts.map(part => (
+                            <button
+                                key={part.id}
+                                onClick={() => setSelectedPartFilter(part.id)}
+                                className={`flex flex-shrink-0 items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
+                                    selectedPartFilter === part.id
+                                    ? `bg-gradient-to-r ${part.gradient} text-white shadow-lg scale-105 ring-2 ring-white/30`
+                                    : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white'
+                                }`}
+                            >
+                                <span>{part.icon}</span>
+                                <span>{part.name}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-2 px-2">
                     {/* Week Filter */}
                    {availableWeeks.length > 0 && (
                        <div className="relative flex-grow sm:flex-grow-0">
                            <select 
                             onChange={(e) => handleJumpToWeek(Number(e.target.value))}
                             value={daySummary?.weekNum || ''}
-                            className="w-full bg-gray-700 text-white text-sm pl-3 pr-8 py-2 rounded-lg border-none focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
+                            className="w-full bg-gray-700/50 text-white text-sm pl-3 pr-8 py-2 rounded-lg border border-gray-600/30 focus:ring-2 focus:ring-blue-500 outline-none appearance-none hover:bg-gray-700 transition-colors"
                            >
                                <option value="" disabled>تصفح حسب الأسبوع...</option>
                                {availableWeeks.map(w => (
@@ -299,7 +301,7 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, onDeleteEntry, onUp
                    )}
                    
                    {!isToday && (
-                       <button onClick={handleJumpToToday} className="px-3 py-2 bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm font-bold transition-colors whitespace-nowrap">
+                       <button onClick={handleJumpToToday} className="px-4 py-2 bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm font-bold transition-colors whitespace-nowrap shadow-sm">
                            عودة لليوم
                        </button>
                    )}
