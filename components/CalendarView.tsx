@@ -154,8 +154,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
         </button>
       </div>
       
-      <div className="grid grid-cols-7 gap-1 text-center text-xs sm:text-sm">
-        {weekdays.map(day => <div key={day} className="font-bold text-gray-400 p-2 mb-2 truncate">{day}</div>)}
+      {/* Weekdays Header: text-[10px] on mobile to fit full names, text-sm on larger screens */}
+      <div className="grid grid-cols-7 gap-1 text-center mb-2">
+        {weekdays.map(day => (
+            <div key={day} className="font-bold text-gray-400 p-1 text-[10px] sm:text-sm truncate">
+                {day}
+            </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-1">
         {calendarDays.map((day, index) => {
           const year = day.getFullYear();
           const month = String(day.getMonth() + 1).padStart(2, '0');
@@ -168,7 +176,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
           const colors = dayStyles.get(dayStr);
           const style = getBackgroundStyle(colors);
 
-          const baseClasses = "w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 text-base relative z-10 group border-2";
+          const baseClasses = "w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full transition-all duration-300 text-xs sm:text-base relative z-10 group border-2";
           let dayClasses = "";
           
           if (isSelected) {

@@ -183,7 +183,7 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
                                 <p className="text-lg font-bold text-blue-200 mb-2">جدول اليوم: {scheduledRoutineForSelectedDate.name}</p>
                                 <p className="text-gray-400 mb-4">لم يتم تسجيل التمارين لهذا اليوم بعد.</p>
                                 <ul className="text-sm text-gray-300 space-y-1 mb-4 inline-block text-right bg-gray-800/50 p-4 rounded-lg">
-                                    {(scheduledRoutineForSelectedDate.exercises as RoutineExercise[]).map((ex, idx) => (
+                                    {scheduledRoutineForSelectedDate.exercises.map((ex, idx) => (
                                         <li key={idx} className="flex items-center gap-2">
                                             <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                                             {ex.exerciseName}
