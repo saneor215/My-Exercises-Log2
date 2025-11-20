@@ -45,7 +45,7 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
         return validLog.filter(entry => {
             const entryDate = new Date(entry.date);
             return entryDate >= startOfDay && entryDate <= endOfDay;
-        });
+        }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Sort Chronologically (Oldest -> Newest)
     }, [validLog, selectedDate]);
     
     // Group entries by part for display
@@ -74,7 +74,7 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
     }, [filteredLog, bodyParts]);
 
     // Determine if there is a scheduled routine for the selected date
-    const scheduledRoutineForSelectedDate = useMemo(() => {
+    const scheduledRoutineForSelectedDate = useMemo<WorkoutRoutine | null>(() => {
         if (!selectedDate || !weeklySchedule || !routines) return null;
         const [year, month, day] = selectedDate.split('-').map(Number);
         const dateObj = new Date(year, month - 1, day);

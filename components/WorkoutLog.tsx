@@ -50,9 +50,13 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, onDeleteEntry, onUp
           groups[dateStr].push(entry);
       });
 
-      // Sort by date descending (Newest first)
+      // Sort by date descending (Newest Day first)
+      // BUT inside each day, sort exercises by time Ascending (Oldest Entry first)
       return Object.entries(groups)
-          .map(([date, entries]) => ({ date, entries }))
+          .map(([date, entries]) => ({ 
+              date, 
+              entries: entries.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) 
+          }))
           .sort((a, b) => b.date.localeCompare(a.date));
   }, [filteredLog]);
   
