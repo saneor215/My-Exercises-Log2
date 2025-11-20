@@ -27,7 +27,8 @@ function AppContent() {
 
   // Nutrition State
   const [nutritionGoals, setNutritionGoals] = useLocalStorage<NutritionGoals>('nutritionGoals_v1', INITIAL_NUTRITION_GOALS);
-  const [foodDatabase, setFoodDatabase] = useLocalStorage<FoodItem[]>('foodDatabase_v1', INITIAL_FOOD_DATABASE);
+  // UPDATED KEY to v2 to force load of new serving sizes (nuts, toast, etc)
+  const [foodDatabase, setFoodDatabase] = useLocalStorage<FoodItem[]>('foodDatabase_v2_smart_portions', INITIAL_FOOD_DATABASE);
   const [dailyDietLogs, setDailyDietLogs] = useLocalStorage<DailyDietLog>('dailyDietLogs_v1', INITIAL_DAILY_DIET_LOGS);
   const [dietPlan, setDietPlan] = useLocalStorage<DietPlan>('dietPlan_v1', INITIAL_DIET_PLAN);
 

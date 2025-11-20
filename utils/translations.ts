@@ -74,7 +74,7 @@ export const translations = {
 
     // Diet
     diet_summary: 'ملخص اليوم',
-    calories: 'سوعرات',
+    calories: 'سعرات',
     protein: 'بروتين',
     carbs: 'كارب',
     fat: 'دهون',
