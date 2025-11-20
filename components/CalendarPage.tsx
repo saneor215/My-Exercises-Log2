@@ -38,22 +38,31 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
 
     const filteredLog = useMemo(() => {
         if (!selectedDate) return [];
-        
-        // selectedDate is "YYYY-MM-DD". We need to find all log entries
-        // that fall within this local day.
         const [year, month, day] = selectedDate.split('-').map(Number);
-
-        // Create date objects for start and end of day using the user's local timezone
         const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0);
         const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999);
         
         return validLog.filter(entry => {
-            const entryDate = new Date(entry.date); // Parses the ISO string correctly
-            // Check if the entry's date falls within the 24-hour window of the selected local day
+            const entryDate = new Date(entry.date);
             return entryDate >= startOfDay && entryDate <= endOfDay;
         });
     }, [validLog, selectedDate]);
     
+    // Calculate Day Summary (Stats)
+    const daySummary = useMemo(() => {
+      if (filteredLog.length === 0) return null;
+      const totalSets = filteredLog.length;
+      const totalVolume = filteredLog.reduce((sum, e) => sum + (e.weight * e.reps), 0);
+      const weekNum = filteredLog[0].week;
+      return { totalSets, totalVolume, weekNum };
+    }, [filteredLog]);
+
+    // Calculate Unique Parts for Badges
+    const uniqueDayParts = useMemo(() => {
+      const partIds = new Set(filteredLog.map(e => e.part));
+      return bodyParts.filter(p => partIds.has(p.id));
+    }, [filteredLog, bodyParts]);
+
     // Determine if there is a scheduled routine for the selected date
     const scheduledRoutineForSelectedDate = useMemo(() => {
         if (!selectedDate || !weeklySchedule || !routines) return null;
@@ -74,8 +83,6 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
 
     const formattedSelectedDate = useMemo(() => {
         if (!selectedDate) return '';
-        // Parse the 'YYYY-MM-DD' string as a local date by adding T00:00:00.
-        // This prevents the browser from interpreting it as UTC midnight.
         const date = new Date(selectedDate + 'T00:00:00');
         return date.toLocaleDateString('ar-EG', {
             weekday: 'long',
@@ -83,7 +90,7 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
             month: 'long',
             year: 'numeric',
             calendar: 'gregory',
-        }); // Uses browser's default timezone for correct display
+        });
     }, [selectedDate]);
 
     return (
@@ -92,42 +99,77 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
                 log={validLog}
                 selectedDate={selectedDate}
                 onDateSelect={setSelectedDate}
+                bodyParts={bodyParts}
             />
 
             {selectedDate && (
-                <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg ring-1 ring-white/10">
-                    <h3 className="font-bold text-2xl bg-gradient-to-r from-sky-400 to-blue-400 bg-clip-text text-transparent mb-4">
-                        تمارين يوم: {formattedSelectedDate}
+                <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg ring-1 ring-white/10 animate-fade-in">
+                    <h3 className="font-bold text-2xl bg-gradient-to-r from-sky-400 to-blue-400 bg-clip-text text-transparent mb-6 text-center">
+                        {formattedSelectedDate}
                     </h3>
-                    <div className="space-y-4">
-                        {filteredLog.length > 0 ? (
-                            filteredLog.map(entry => (
-                                <LogItem 
-                                    key={entry.id} 
-                                    entry={entry}
-                                    bodyParts={bodyParts}
-                                    onDelete={onDeleteEntry}
-                                    onEditRequest={setEditingEntry}
-                                    onImageClick={setViewingImage}
-                                />
-                            ))
-                        ) : scheduledRoutineForSelectedDate ? (
-                            <div className="text-center p-8 border-2 border-dashed border-blue-500/30 bg-blue-900/10 rounded-xl">
+
+                    {filteredLog.length > 0 ? (
+                        <div className="space-y-6">
+                            {/* Badges Section */}
+                            <div className="flex justify-center gap-3 flex-wrap">
+                                {uniqueDayParts.map(part => (
+                                    <div key={part.id} className={`flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r ${part.gradient} text-white shadow-lg transform hover:scale-105 transition-transform cursor-default`}>
+                                        <span className="text-2xl">{part.icon}</span>
+                                        <span className="font-bold text-lg">{part.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Stats Section */}
+                            {daySummary && (
+                                <div className="grid grid-cols-3 gap-4 text-center bg-gray-700/30 p-4 rounded-xl border border-gray-600/20">
+                                    <div>
+                                        <p className="text-xs text-gray-400 mb-1">الأسبوع</p>
+                                        <p className="text-xl font-bold text-yellow-400">{daySummary.weekNum}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400 mb-1">مجموعات</p>
+                                        <p className="text-xl font-bold text-cyan-400">{daySummary.totalSets}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400 mb-1">إجمالي الحمل</p>
+                                        <p className="text-xl font-bold text-purple-400">{(daySummary.totalVolume / 1000).toFixed(1)}k</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* List */}
+                            <div className="space-y-4">
+                                {filteredLog.map(entry => (
+                                    <LogItem 
+                                        key={entry.id} 
+                                        entry={entry}
+                                        bodyParts={bodyParts}
+                                        onDelete={onDeleteEntry}
+                                        onEditRequest={setEditingEntry}
+                                        onImageClick={setViewingImage}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    ) : scheduledRoutineForSelectedDate ? (
+                         <div className="text-center p-8 border-2 border-dashed border-blue-500/30 bg-blue-900/10 rounded-xl">
                                 <p className="text-lg font-bold text-blue-200 mb-2">جدول اليوم: {scheduledRoutineForSelectedDate.name}</p>
-                                <p className="text-gray-400 mb-4">لم يتم تسجيل التمارين لهذا اليوم بعد. يحتوي الجدول على:</p>
-                                <ul className="text-sm text-gray-300 space-y-1 mb-4 inline-block text-right">
+                                <p className="text-gray-400 mb-4">لم يتم تسجيل التمارين لهذا اليوم بعد.</p>
+                                <ul className="text-sm text-gray-300 space-y-1 mb-4 inline-block text-right bg-gray-800/50 p-4 rounded-lg">
                                     {scheduledRoutineForSelectedDate.exercises.map((ex, idx) => (
-                                        <li key={idx}>• {ex.exerciseName}</li>
+                                        <li key={idx} className="flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                                            {ex.exerciseName}
+                                        </li>
                                     ))}
                                 </ul>
-                                <p className="text-xs text-gray-500 mt-2">انتقل إلى صفحة التسجيل لتسجيل هذا الروتين بسرعة.</p>
-                            </div>
-                        ) : (
-                            <div className="text-center text-gray-500 p-8 border-2 border-dashed border-gray-700 rounded-xl">
-                                لا توجد تمارين مسجلة في هذا اليوم.
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                    ) : (
+                        <div className="text-center text-gray-500 p-8 border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center">
+                            <p>لا توجد تمارين مسجلة في هذا اليوم.</p>
+                        </div>
+                    )}
                 </div>
             )}
              {viewingImage && (
