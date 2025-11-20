@@ -52,12 +52,18 @@ export const StartRoutineModal: React.FC<StartRoutineModalProps> = ({
         }
     }, [isOpen, log]);
 
-    // Auto-fill weights from history
+    // Auto-fill weights from history (Logic improvement)
     useEffect(() => {
         if (selectedRoutine) {
             const newEntries = selectedRoutine.exercises.map(re => {
-                // Find the most recent entry for this exercise
-                const lastEntry = log.find(e => e.exercise === re.exerciseName);
+                // Find the most recent entry for this specific exercise
+                // We filter the log for this exercise name, then find the one with the latest date
+                const exerciseHistory = log.filter(e => e.exercise === re.exerciseName);
+                // Sort by date descending (newest first)
+                exerciseHistory.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                
+                const lastEntry = exerciseHistory[0];
+                
                 return { 
                     weight: lastEntry ? String(lastEntry.weight) : '', 
                     reps: lastEntry ? String(lastEntry.reps) : '', 
@@ -98,7 +104,7 @@ export const StartRoutineModal: React.FC<StartRoutineModalProps> = ({
             const weightNum = parseFloat(data.weight);
             const repsNum = parseInt(data.reps, 10);
 
-            // Allow saving even if some exercises are not filled
+            // Allow saving even if some exercises are not filled (skip empty ones)
             if (!data.weight && !data.reps) continue;
 
             if (isNaN(weightNum) || isNaN(repsNum) || weightNum <= 0 || repsNum <= 0) {
@@ -158,8 +164,14 @@ export const StartRoutineModal: React.FC<StartRoutineModalProps> = ({
                                     <p className="font-semibold text-lg text-white">{re.exerciseName}</p>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                    <input type="number" value={data.weight} onChange={e => handleDataChange(index, 'weight', e.target.value)} placeholder="الوزن (كجم)" className="w-full bg-gray-600 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                                    <input type="number" value={data.reps} onChange={e => handleDataChange(index, 'reps', e.target.value)} placeholder="التكرارات" className="w-full bg-gray-600 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                    <div className="relative">
+                                        <label className="text-xs text-gray-400 absolute -top-2 right-2 bg-gray-700 px-1">الوزن</label>
+                                        <input type="number" value={data.weight} onChange={e => handleDataChange(index, 'weight', e.target.value)} placeholder={data.weight ? `آخر وزن: ${data.weight}` : "الوزن (كجم)"} className="w-full bg-gray-600 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                    </div>
+                                    <div className="relative">
+                                        <label className="text-xs text-gray-400 absolute -top-2 right-2 bg-gray-700 px-1">التكرارات</label>
+                                        <input type="number" value={data.reps} onChange={e => handleDataChange(index, 'reps', e.target.value)} placeholder={data.reps ? `آخر تكرار: ${data.reps}` : "التكرارات"} className="w-full bg-gray-600 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                    </div>
                                     <textarea value={data.comment} onChange={e => handleDataChange(index, 'comment', e.target.value)} placeholder="تعليق (اختياري)" rows={1} className="md:col-span-2 w-full bg-gray-600 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                                 </div>
                             </div>

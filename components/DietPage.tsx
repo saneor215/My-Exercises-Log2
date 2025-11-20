@@ -325,11 +325,11 @@ export const DietPage: React.FC<DietPageProps> = ({ goals, foodDatabase, dailyLo
                 {(Object.keys(mealTitles) as MealType[]).map(meal => (
                     <div key={meal} className="bg-gray-800 p-4 rounded-2xl ring-1 ring-white/10 relative overflow-hidden">
                         {/* Visual indicator for using template in daily view */}
-                        {!isEditingPlan && dailyLogs[selectedDateStr] === undefined && dietPlan[meal]?.length && (
-                            <div className="absolute top-0 left-0 bg-blue-600/20 text-blue-300 text-[10px] px-2 py-1 rounded-br-lg">
+                        {!isEditingPlan && dailyLogs[selectedDateStr] === undefined && dietPlan[meal]?.length ? (
+                            <div className="absolute top-0 left-0 bg-blue-600/20 text-blue-300 text-[10px] px-2 py-1 rounded-br-lg border-r border-b border-blue-600/20">
                                 من الخطة
                             </div>
-                        )}
+                        ) : null}
                         
                         <h3 className="text-lg font-bold text-teal-300 mb-3">{mealTitles[meal]}</h3>
                         <div className="space-y-2 mb-3">

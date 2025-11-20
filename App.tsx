@@ -135,10 +135,6 @@ export default function App(): React.ReactElement {
         if (!currentDayLog[meal]) return prev; // Should not happen if logic is correct
         
         currentDayLog[meal] = currentDayLog[meal]!.filter(food => food.id !== loggedFoodId);
-
-        // If meal becomes empty, we leave it as empty array or delete key?
-        // Better to keep the day object existing even if empty, so we know it's "modified" (even if just deletions)
-        // compared to "undefined" which means "show template".
         
         return { ...prev, [date]: currentDayLog };
     });

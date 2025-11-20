@@ -74,68 +74,75 @@ export const MICRONUTRIENTS_LIST: MicronutrientInfo[] = [
 export const INITIAL_FOOD_DATABASE: FoodItem[] = [
     // Proteins
     { id: 'food-1', name: 'صدر دجاج', calories: 165, protein: 31, carbs: 0, fat: 3.6, servingSize: '100g', micronutrients: ['حديد'], keywords: ['chicken breast', 'poultry', 'دجاج'] },
-    { id: 'food-3', name: 'بيضة مسلوقة', calories: 78, protein: 6, carbs: 0.6, fat: 5, servingSize: '1 large (50g)', micronutrients: ['فيتامين D'], keywords: ['egg', 'boiled egg', 'بيضة', 'بيض', 'مسلوق'] },
-    { id: 'food-40', name: 'بيضة مقلية', calories: 90, protein: 6, carbs: 0.6, fat: 7, servingSize: '1 large (50g)', keywords: ['egg', 'fried egg', 'بيضة', 'بيض', 'مقلي'] },
-    { id: 'food-27', name: 'بياض بيض', calories: 52, protein: 11, carbs: 0.7, fat: 0.2, servingSize: '100g', keywords: ['egg white', 'egg', 'بيض'] },
+    { id: 'food-3', name: 'بيضة مسلوقة', calories: 78, protein: 6, carbs: 0.6, fat: 5, servingSize: 'حبة كبيرة', micronutrients: ['فيتامين D'], keywords: ['egg', 'boiled egg', 'بيضة', 'بيض', 'مسلوق'] },
+    { id: 'food-40', name: 'بيضة مقلية', calories: 90, protein: 6, carbs: 0.6, fat: 7, servingSize: 'حبة كبيرة', keywords: ['egg', 'fried egg', 'بيضة', 'بيض', 'مقلي'] },
+    { id: 'food-27', name: 'بياض بيض', calories: 17, protein: 3.6, carbs: 0.2, fat: 0, servingSize: 'حبة (بياض فقط)', keywords: ['egg white', 'egg', 'بيض', 'بياض'] },
     { id: 'food-6', name: 'سلمون', calories: 208, protein: 20, carbs: 0, fat: 13, servingSize: '100g', micronutrients: ['أوميغا-3', 'فيتامين D'], keywords: ['salmon', 'fish', 'سمك', 'سلمون'] },
-    { id: 'food-12', name: 'تونة (معلبة بالماء)', calories: 132, protein: 28, carbs: 0, fat: 1.3, servingSize: '100g', micronutrients: ['أوميغا-3', 'فيتامين D'], keywords: ['tuna', 'canned tuna', 'fish', 'تونة'] },
+    { id: 'food-12', name: 'تونة (معلبة بالماء)', calories: 132, protein: 28, carbs: 0, fat: 1.3, servingSize: 'علبة صغيرة (100g)', micronutrients: ['أوميغا-3', 'فيتامين D'], keywords: ['tuna', 'canned tuna', 'fish', 'تونة'] },
     { id: 'food-7', name: 'لحم بقري مفروم', calories: 250, protein: 26, carbs: 0, fat: 15, servingSize: '100g', micronutrients: ['حديد'], keywords: ['beef', 'minced beef', 'لحم', 'بقري'] },
     { id: 'food-25', name: 'صدر ديك رومي', calories: 135, protein: 29, carbs: 0, fat: 1, servingSize: '100g', micronutrients: ['حديد'], keywords: ['turkey breast', 'poultry', 'ديك رومي'] },
-    { id: 'food-14', name: 'عدس', calories: 116, protein: 9, carbs: 20, fat: 0.4, servingSize: '100g', micronutrients: ['حديد', 'ألياف'], keywords: ['lentils', 'legumes', 'عدس'] },
-    { id: 'food-28', name: 'حمص', calories: 164, protein: 8.9, carbs: 27, fat: 2.6, servingSize: '100g', micronutrients: ['حديد', 'ألياف'], keywords: ['chickpeas', 'hummus', 'حمص'] },
-    { id: 'food-29', name: 'فول', calories: 88, protein: 8, carbs: 15, fat: 0.5, servingSize: '100g', micronutrients: ['حديد', 'ألياف'], keywords: ['fava beans', 'beans', 'فول'] },
-    { id: 'food-26', name: 'واي بروتين', calories: 375, protein: 80, carbs: 5, fat: 3, servingSize: '100g', keywords: ['whey protein', 'supplement', 'بروتين', 'مكمل'] },
-    { id: 'food-51', name: 'بروتين شيك (مُحضر)', calories: 120, protein: 24, carbs: 3, fat: 1.5, servingSize: '1 scoop in water', keywords: ['protein shake', 'whey', 'بروتين', 'شيك'] },
+    { id: 'food-14', name: 'عدس (مطبوخ)', calories: 116, protein: 9, carbs: 20, fat: 0.4, servingSize: '100g', micronutrients: ['حديد', 'ألياف'], keywords: ['lentils', 'legumes', 'عدس'] },
+    { id: 'food-28', name: 'حمص (مطبوخ)', calories: 164, protein: 8.9, carbs: 27, fat: 2.6, servingSize: '100g', micronutrients: ['حديد', 'ألياف'], keywords: ['chickpeas', 'hummus', 'حمص'] },
+    { id: 'food-29', name: 'فول (مطبوخ)', calories: 110, protein: 8, carbs: 19, fat: 0.5, servingSize: '100g', micronutrients: ['حديد', 'ألياف'], keywords: ['fava beans', 'beans', 'فول'] },
+    { id: 'food-26', name: 'واي بروتين', calories: 120, protein: 24, carbs: 3, fat: 1, servingSize: 'سكوب (30g)', keywords: ['whey protein', 'supplement', 'بروتين', 'مكمل'] },
 
     // Carbs
-    { id: 'food-2', name: 'رز أبيض', calories: 130, protein: 2.7, carbs: 28, fat: 0.3, servingSize: '100g', keywords: ['rice', 'white rice', 'رز', 'أرز'] },
-    { id: 'food-17', name: 'رز بني', calories: 111, protein: 2.6, carbs: 23, fat: 0.9, servingSize: '100g', micronutrients: ['ألياف'], keywords: ['brown rice', 'rice', 'رز', 'أرز', 'بني'] },
-    { id: 'food-19', name: 'خبز أسمر', calories: 265, protein: 13, carbs: 48, fat: 3.4, servingSize: '100g', micronutrients: ['ألياف'], keywords: ['whole wheat bread', 'bread', 'خبز', 'أسمر', 'بر', 'توست'] },
-    { id: 'food-16', name: 'شوفان', calories: 389, protein: 16.9, carbs: 66, fat: 6.9, servingSize: '100g', micronutrients: ['ألياف', 'حديد'], keywords: ['oats', 'oatmeal', 'شوفان'] },
-    { id: 'food-8', name: 'بطاطا حلوة', calories: 86, protein: 1.6, carbs: 20, fat: 0.1, servingSize: '100g', micronutrients: ['فيتامين A', 'ألياف'], keywords: ['sweet potato', 'بطاطا'] },
-    { id: 'food-18', name: 'كينوا', calories: 120, protein: 4.4, carbs: 21, fat: 1.9, servingSize: '100g', micronutrients: ['حديد', 'ألياف'], keywords: ['quinoa', 'كينوا'] },
-    { id: 'food-30', name: 'باستا', calories: 131, protein: 5, carbs: 25, fat: 1.1, servingSize: '100g', keywords: ['pasta', 'معكرونة', 'باستا'] },
+    { id: 'food-2', name: 'رز أبيض (مطبوخ)', calories: 130, protein: 2.7, carbs: 28, fat: 0.3, servingSize: '100g', keywords: ['rice', 'white rice', 'رز', 'أرز'] },
+    { id: 'food-17', name: 'رز بني (مطبوخ)', calories: 111, protein: 2.6, carbs: 23, fat: 0.9, servingSize: '100g', micronutrients: ['ألياف'], keywords: ['brown rice', 'rice', 'رز', 'أرز', 'بني'] },
+    { id: 'food-19', name: 'توست أسمر', calories: 80, protein: 4, carbs: 14, fat: 1, servingSize: 'شريحة واحدة', micronutrients: ['ألياف'], keywords: ['whole wheat bread', 'bread', 'خبز', 'أسمر', 'بر', 'توست'] },
+    { id: 'food-16', name: 'شوفان', calories: 150, protein: 5, carbs: 27, fat: 2.5, servingSize: '40g (نصف كوب جاف)', micronutrients: ['ألياف', 'حديد'], keywords: ['oats', 'oatmeal', 'شوفان'] },
+    { id: 'food-8', name: 'بطاطا حلوة', calories: 60, protein: 1.5, carbs: 14, fat: 0.1, servingSize: 'نصف حبة متوسطة (75g)', micronutrients: ['فيتامين A', 'ألياف'], keywords: ['sweet potato', 'بطاطا'] },
+    { id: 'food-18', name: 'كينوا (مطبوخة)', calories: 120, protein: 4.4, carbs: 21, fat: 1.9, servingSize: '100g', micronutrients: ['حديد', 'ألياف'], keywords: ['quinoa', 'كينوا'] },
+    { id: 'food-30', name: 'باستا (مطبوخة)', calories: 131, protein: 5, carbs: 25, fat: 1.1, servingSize: '100g', keywords: ['pasta', 'معكرونة', 'باستا'] },
+    { id: 'food-55', name: 'خبز أبيض', calories: 265, protein: 9, carbs: 49, fat: 3, servingSize: 'رغيف صغير (100g)', keywords: ['bread', 'white bread', 'خبز', 'ابيض'] },
 
-    // Fats & Nuts
-    { id: 'food-4', name: 'زيت زيتون', calories: 884, protein: 0, carbs: 0, fat: 100, servingSize: '100g', micronutrients: ['أوميغا-3'], keywords: ['olive oil', 'oil', 'زيت'] },
-    { id: 'food-21', name: 'أفوكادو', calories: 160, protein: 2, carbs: 9, fat: 15, servingSize: '100g', micronutrients: ['بوتاسيوم', 'أوميغا-3', 'ألياف'], keywords: ['avocado', 'أفوكادو'] },
-    { id: 'food-20', name: 'لوز', calories: 579, protein: 21, carbs: 22, fat: 49, servingSize: '100g', micronutrients: ['أوميغا-3', 'كالسيوم', 'ألياف'], keywords: ['almonds', 'nuts', 'لوز'] },
-    { id: 'food-31', name: 'جوز', calories: 654, protein: 15, carbs: 14, fat: 65, servingSize: '100g', micronutrients: ['أوميغا-3'], keywords: ['walnuts', 'nuts', 'جوز', 'عين الجمل'] },
-    { id: 'food-41', name: 'كاجو', calories: 553, protein: 18, carbs: 30, fat: 44, servingSize: '100g', micronutrients: ['حديد'], keywords: ['cashews', 'nuts', 'كاجو'] },
-    { id: 'food-32', name: 'بذور الشيا', calories: 486, protein: 17, carbs: 42, fat: 31, servingSize: '100g', micronutrients: ['أوميغا-3', 'كالسيوم', 'ألياف'], keywords: ['chia seeds', 'seeds', 'شيا'] },
-    { id: 'food-48', name: 'بذور سمسم', calories: 573, protein: 18, carbs: 23, fat: 50, servingSize: '100g', micronutrients: ['كالسيوم', 'حديد'], keywords: ['sesame seeds', 'seeds', 'سمسم'] },
+    // Fats & Nuts (Pieces/Handfuls)
+    { id: 'food-4', name: 'زيت زيتون', calories: 120, protein: 0, carbs: 0, fat: 14, servingSize: 'ملعقة طعام (15ml)', micronutrients: ['أوميغا-3'], keywords: ['olive oil', 'oil', 'زيت'] },
+    { id: 'food-21', name: 'أفوكادو', calories: 240, protein: 3, carbs: 12, fat: 22, servingSize: 'حبة متوسطة', micronutrients: ['بوتاسيوم', 'أوميغا-3', 'ألياف'], keywords: ['avocado', 'أفوكادو'] },
     
-    // Fruits
-    { id: 'food-9', name: 'موز', calories: 89, protein: 1.1, carbs: 23, fat: 0.3, servingSize: '100g', micronutrients: ['بوتاسيوم'], keywords: ['banana', 'موز'] },
-    { id: 'food-5', name: 'برتقال', calories: 47, protein: 0.9, carbs: 12, fat: 0.1, servingSize: '100g', micronutrients: ['فيتامين C', 'ألياف'], keywords: ['orange', 'fruit', 'برتقال'] },
-    { id: 'food-23', name: 'تفاح', calories: 52, protein: 0.3, carbs: 14, fat: 0.2, servingSize: '100g', micronutrients: ['فيتامين C', 'ألياف'], keywords: ['apple', 'fruit', 'تفاح'] },
-    { id: 'food-33', name: 'فراولة', calories: 32, protein: 0.7, carbs: 8, fat: 0.3, servingSize: '100g', micronutrients: ['فيتامين C', 'ألياف'], keywords: ['strawberry', 'fruit', 'فراولة', 'توت'] },
-    { id: 'food-34', name: 'توت أزرق', calories: 57, protein: 0.7, carbs: 14, fat: 0.3, servingSize: '100g', micronutrients: ['فيتامين C', 'ألياف'], keywords: ['blueberry', 'fruit', 'توت'] },
-    { id: 'food-35', name: 'مانجو', calories: 60, protein: 0.8, carbs: 15, fat: 0.4, servingSize: '100g', micronutrients: ['فيتامين C', 'فيتامين A'], keywords: ['mango', 'fruit', 'مانجو'] },
-    { id: 'food-36', name: 'أناناس', calories: 50, protein: 0.5, carbs: 13, fat: 0.1, servingSize: '100g', micronutrients: ['فيتامين C'], keywords: ['pineapple', 'fruit', 'أناناس'] },
+    // Nuts updated to 'per piece' where possible
+    { id: 'food-20', name: 'لوز', calories: 7, protein: 0.25, carbs: 0.25, fat: 0.6, servingSize: 'حبة واحدة', micronutrients: ['أوميغا-3', 'كالسيوم', 'ألياف'], keywords: ['almonds', 'nuts', 'لوز'] },
+    { id: 'food-31', name: 'جوز (عين الجمل)', calories: 14, protein: 0.3, carbs: 0.3, fat: 1.3, servingSize: 'نصف حبة (فص)', micronutrients: ['أوميغا-3'], keywords: ['walnuts', 'nuts', 'جوز', 'عين الجمل'] },
+    { id: 'food-41', name: 'كاجو', calories: 9, protein: 0.3, carbs: 0.5, fat: 0.7, servingSize: 'حبة واحدة', micronutrients: ['حديد'], keywords: ['cashews', 'nuts', 'كاجو'] },
+    
+    // Pumpkin seeds changed to 10g
+    { id: 'food-56', name: 'بذور القرع', calories: 57, protein: 3, carbs: 1.5, fat: 4.9, servingSize: '10g', micronutrients: ['حديد', 'ألياف', 'أوميغا-3'], keywords: ['pumpkin seeds', 'seeds', 'بذور', 'قرع'] },
+    
+    { id: 'food-32', name: 'بذور الشيا', calories: 138, protein: 4.7, carbs: 12, fat: 8.7, servingSize: 'أونصة (28g)', micronutrients: ['أوميغا-3', 'كالسيوم', 'ألياف'], keywords: ['chia seeds', 'seeds', 'شيا'] },
+    { id: 'food-48', name: 'بذور سمسم', calories: 52, protein: 1.6, carbs: 2.1, fat: 4.5, servingSize: 'ملعقة طعام (9g)', micronutrients: ['كالسيوم', 'حديد'], keywords: ['sesame seeds', 'seeds', 'سمسم'] },
+    { id: 'food-52', name: 'زبدة الفول السوداني', calories: 190, protein: 7, carbs: 7, fat: 16, servingSize: 'ملعقتين طعام (32g)', keywords: ['peanut butter', 'زبدة'] },
+    
+    // Fruits (Piece)
+    { id: 'food-9', name: 'موز', calories: 105, protein: 1.3, carbs: 27, fat: 0.4, servingSize: 'حبة متوسطة', micronutrients: ['بوتاسيوم'], keywords: ['banana', 'موز'] },
+    { id: 'food-5', name: 'برتقال', calories: 62, protein: 1.2, carbs: 15, fat: 0.2, servingSize: 'حبة متوسطة', micronutrients: ['فيتامين C', 'ألياف'], keywords: ['orange', 'fruit', 'برتقال'] },
+    { id: 'food-23', name: 'تفاح', calories: 95, protein: 0.5, carbs: 25, fat: 0.3, servingSize: 'حبة متوسطة', micronutrients: ['فيتامين C', 'ألياف'], keywords: ['apple', 'fruit', 'تفاح'] },
+    { id: 'food-33', name: 'فراولة', calories: 49, protein: 1, carbs: 12, fat: 0.5, servingSize: 'كوب (150g)', micronutrients: ['فيتامين C', 'ألياف'], keywords: ['strawberry', 'fruit', 'فراولة', 'توت'] },
+    { id: 'food-34', name: 'توت أزرق', calories: 84, protein: 1, carbs: 21, fat: 0.5, servingSize: 'كوب (148g)', micronutrients: ['فيتامين C', 'ألياف'], keywords: ['blueberry', 'fruit', 'توت'] },
+    { id: 'food-35', name: 'مانجو', calories: 202, protein: 2.8, carbs: 50, fat: 1.3, servingSize: 'حبة كاملة (336g)', micronutrients: ['فيتامين C', 'فيتامين A'], keywords: ['mango', 'fruit', 'مانجو'] },
+    { id: 'food-36', name: 'أناناس', calories: 82, protein: 0.9, carbs: 21, fat: 0.2, servingSize: 'كوب قطع (165g)', micronutrients: ['فيتامين C'], keywords: ['pineapple', 'fruit', 'أناناس'] },
+    { id: 'food-53', name: 'تمر', calories: 66, protein: 0.4, carbs: 18, fat: 0, servingSize: '3 حبات', keywords: ['dates', 'تمر'] },
     
     // Vegetables
     { id: 'food-10', name: 'سبانخ', calories: 23, protein: 2.9, carbs: 3.6, fat: 0.4, servingSize: '100g', micronutrients: ['حديد', 'فيتامين A'], keywords: ['spinach', 'سبانخ'] },
     { id: 'food-22', name: 'بروكلي', calories: 34, protein: 2.8, carbs: 7, fat: 0.4, servingSize: '100g', micronutrients: ['فيتامين C', 'فيتامين A', 'ألياف'], keywords: ['broccoli', 'بروكلي'] },
-    { id: 'food-24', name: 'طماطم', calories: 18, protein: 0.9, carbs: 3.9, fat: 0.2, servingSize: '100g', micronutrients: ['فيتامين C', 'فيتامين A'], keywords: ['tomato', 'طماطم'] },
-    { id: 'food-37', name: 'فلفل رومي', calories: 20, protein: 0.9, carbs: 4.6, fat: 0.2, servingSize: '100g', micronutrients: ['فيتامين C', 'فيتامين A'], keywords: ['bell pepper', 'pepper', 'فلفل'] },
-    { id: 'food-38', name: 'خيار', calories: 15, protein: 0.7, carbs: 3.6, fat: 0.1, servingSize: '100g', keywords: ['cucumber', 'خيار'] },
-    { id: 'food-39', name: 'جزر', calories: 41, protein: 0.9, carbs: 10, fat: 0.2, servingSize: '100g', micronutrients: ['فيتامين A'], keywords: ['carrot', 'جزر'] },
-    { id: 'food-49', name: 'سلطة خضراء', calories: 15, protein: 1, carbs: 3, fat: 0.2, servingSize: '100g', micronutrients: ['ألياف', 'فيتامين C', 'فيتامين A'], keywords: ['green salad', 'salad', 'سلطة'] },
-    { id: 'food-50', name: 'إيدام خضار', calories: 70, protein: 2, carbs: 10, fat: 2.5, servingSize: '100g', micronutrients: ['ألياف', 'فيتامين A'], keywords: ['vegetable stew', 'idam', 'إيدام', 'مرق'] },
+    { id: 'food-24', name: 'طماطم', calories: 22, protein: 1, carbs: 5, fat: 0.2, servingSize: 'حبة متوسطة', micronutrients: ['فيتامين C', 'فيتامين A'], keywords: ['tomato', 'طماطم'] },
+    { id: 'food-37', name: 'فلفل رومي', calories: 24, protein: 1, carbs: 6, fat: 0.2, servingSize: 'حبة متوسطة', micronutrients: ['فيتامين C', 'فيتامين A'], keywords: ['bell pepper', 'pepper', 'فلفل'] },
+    { id: 'food-38', name: 'خيار', calories: 16, protein: 0.7, carbs: 4, fat: 0.1, servingSize: 'حبة متوسطة', keywords: ['cucumber', 'خيار'] },
+    { id: 'food-39', name: 'جزر', calories: 25, protein: 0.6, carbs: 6, fat: 0.1, servingSize: 'حبة متوسطة', micronutrients: ['فيتامين A'], keywords: ['carrot', 'جزر'] },
+    { id: 'food-49', name: 'سلطة خضراء', calories: 20, protein: 1.5, carbs: 4, fat: 0.2, servingSize: 'صحن صغير', micronutrients: ['ألياف', 'فيتامين C', 'فيتامين A'], keywords: ['green salad', 'salad', 'سلطة'] },
 
     // Dairy
-    { id: 'food-11', name: 'حليب', calories: 42, protein: 3.4, carbs: 5, fat: 1, servingSize: '100g', micronutrients: ['كالسيوم', 'فيتامين D'], keywords: ['milk', 'حليب'] },
-    { id: 'food-13', name: 'زبادي يوناني', calories: 59, protein: 10, carbs: 3.6, fat: 0.4, servingSize: '100g', micronutrients: ['كالسيوم'], keywords: ['greek yogurt', 'yogurt', 'زبادي'] },
-    { id: 'food-15', name: 'جبن قريش', calories: 72, protein: 14, carbs: 3.4, fat: 1, servingSize: '100g', micronutrients: ['كالسيوم'], keywords: ['cottage cheese', 'cheese', 'جبن', 'قريش'] },
-    { id: 'food-42', name: 'زبادي عادي', calories: 61, protein: 10, carbs: 4.7, fat: 0.4, servingSize: '100g', micronutrients: ['كالسيوم'], keywords: ['plain yogurt', 'yogurt', 'زبادي', 'عادي'] },
-    { id: 'food-43', name: 'لبن', calories: 61, protein: 3.3, carbs: 5, fat: 3.3, servingSize: '100g', micronutrients: ['كالسيوم'], keywords: ['laban', 'buttermilk', 'لبن'] },
+    { id: 'food-11', name: 'حليب (قليل الدسم)', calories: 100, protein: 8, carbs: 12, fat: 2.5, servingSize: 'كوب (240ml)', micronutrients: ['كالسيوم', 'فيتامين D'], keywords: ['milk', 'حليب'] },
+    { id: 'food-13', name: 'زبادي يوناني', calories: 100, protein: 17, carbs: 6, fat: 0.7, servingSize: 'علبة (170g)', micronutrients: ['كالسيوم'], keywords: ['greek yogurt', 'yogurt', 'زبادي'] },
+    { id: 'food-15', name: 'جبن قريش', calories: 81, protein: 11, carbs: 3.4, fat: 2.3, servingSize: 'نصف كوب (113g)', micronutrients: ['كالسيوم'], keywords: ['cottage cheese', 'cheese', 'جبن', 'قريش'] },
+    { id: 'food-42', name: 'زبادي عادي', calories: 150, protein: 8, carbs: 11, fat: 8, servingSize: 'علبة (170g)', micronutrients: ['كالسيوم'], keywords: ['plain yogurt', 'yogurt', 'زبادي', 'عادي'] },
+    { id: 'food-54', name: 'شريحة جبن', calories: 60, protein: 4, carbs: 1, fat: 4.5, servingSize: 'شريحة واحدة', micronutrients: ['كالسيوم'], keywords: ['cheese', 'slice', 'جبن', 'شريحة'] },
 
     // Misc
-    { id: 'food-44', name: 'مسحوق كولاجين', calories: 22, protein: 5.5, carbs: 0, fat: 0, servingSize: '6g', keywords: ['collagen powder', 'collagen', 'كولاجين'] },
-    { id: 'food-45', name: 'عسل', calories: 21, protein: 0, carbs: 5.8, fat: 0, servingSize: '1 tsp (7g)', keywords: ['honey', 'عسل'] },
-    { id: 'food-46', name: 'قهوة سوداء', calories: 2, protein: 0.3, carbs: 0, fat: 0, servingSize: '1 cup (240ml)', keywords: ['black coffee', 'coffee', 'قهوة'] },
-    { id: 'food-47', name: 'ماء', calories: 0, protein: 0, carbs: 0, fat: 0, servingSize: '1 cup (240ml)', keywords: ['water', 'ماء'] },
+    { id: 'food-44', name: 'مسحوق كولاجين', calories: 22, protein: 5.5, carbs: 0, fat: 0, servingSize: 'سكوب (6g)', keywords: ['collagen powder', 'collagen', 'كولاجين'] },
+    { id: 'food-45', name: 'عسل', calories: 64, protein: 0, carbs: 17, fat: 0, servingSize: 'ملعقة طعام (21g)', keywords: ['honey', 'عسل'] },
+    { id: 'food-46', name: 'قهوة سوداء', calories: 2, protein: 0.3, carbs: 0, fat: 0, servingSize: 'كوب (240ml)', keywords: ['black coffee', 'coffee', 'قهوة'] },
+    { id: 'food-47', name: 'ماء', calories: 0, protein: 0, carbs: 0, fat: 0, servingSize: 'كوب (240ml)', keywords: ['water', 'ماء'] },
 ];
 
 export const INITIAL_DAILY_DIET_LOGS: DailyDietLog = {};

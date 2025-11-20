@@ -60,7 +60,8 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
       const today = new Date();
       const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-      // Check if any exercise from the routine exists in the log for today
+      // Check if ANY exercise from the routine exists in the log for today
+      // This prevents the button from being active if the user already did the workout
       return log.some(entry => {
           const entryDate = new Date(entry.date);
           const entryDateStr = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}-${String(entryDate.getDate()).padStart(2, '0')}`;
@@ -201,13 +202,13 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
              <button 
                 onClick={handleQuickLogSchedule}
                 disabled={isTodayLogged}
-                className={`w-full text-sm font-bold py-2 px-3 rounded-lg transition-colors shadow-md ${
+                className={`w-full text-sm font-bold py-2 px-3 rounded-lg transition-colors shadow-md flex items-center justify-center gap-2 ${
                     isTodayLogged 
-                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+                    ? 'bg-green-600/20 text-green-400 cursor-not-allowed border border-green-500/20' 
                     : 'bg-blue-600 hover:bg-blue-500 text-white'
                 }`}
              >
-                 {isTodayLogged ? 'تم تسجيل التمارين' : 'تسجيل تمارين اليوم سريعاً'}
+                 {isTodayLogged ? 'تم تسجيل تمارين اليوم' : 'تسجيل تمارين اليوم سريعاً'}
              </button>
          </div>
       )}
