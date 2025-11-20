@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import type { WorkoutEntry, BodyPart } from '../types';
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface CalendarViewProps {
   log: WorkoutEntry[];
@@ -10,11 +11,10 @@ interface CalendarViewProps {
   bodyParts: BodyPart[];
 }
 
-// Hex codes for Tailwind colors used in the app to generate CSS gradients
 const COLOR_MAP: Record<string, string> = {
-    sky: '#0ea5e9',      // sky-500
-    emerald: '#10b981',  // emerald-500
-    orange: '#f97316',   // orange-500
+    sky: '#0ea5e9',
+    emerald: '#10b981',
+    orange: '#f97316',
     rose: '#f43f5e',
     fuchsia: '#d946ef',
     indigo: '#6366f1',
@@ -38,17 +38,16 @@ const isSameDay = (d1: Date, d2: Date) => {
 };
 
 export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, onDateSelect, bodyParts }) => {
+  const { language, dir } = useLanguage();
   const [displayDate, setDisplayDate] = useState(new Date());
   const today = new Date();
 
   const isCurrentMonth = displayDate.getMonth() === today.getMonth() && 
                          displayDate.getFullYear() === today.getFullYear();
 
-  // Map date string to unique body part colors for that day
   const dayStyles = useMemo(() => {
-    const styles = new Map<string, string[]>(); // Date -> Array of Hex Colors
+    const styles = new Map<string, string[]>();
     
-    // Helper to lookup part color
     const getPartColor = (partId: string) => {
         const part = bodyParts.find(p => p.id === partId);
         const colorName = part ? part.color : 'blue';
@@ -82,14 +81,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
     if (!colors || colors.length === 0) return undefined;
     if (colors.length === 1) return { backgroundColor: colors[0] };
 
-    // Create a hard-stop linear gradient for split effect
     const step = 100 / colors.length;
     let gradient = 'linear-gradient(135deg';
     
     colors.forEach((color, index) => {
         const start = index * step;
         const end = (index + 1) * step;
-        // Syntax: color start%, color end% creates a solid block
         gradient += `, ${color} ${start}% ${end}%`;
     });
     
@@ -132,29 +129,34 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
-  const weekdays = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+  const weekdays = language === 'ar' 
+    ? ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة']
+    : ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 
   return (
     <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg ring-1 ring-white/10">
       <div className="flex items-center justify-between mb-6">
         <button 
-            onClick={handleNextMonth} 
-            disabled={isCurrentMonth}
-            className={`p-2 rounded-full transition-colors ${isCurrentMonth ? 'opacity-0 cursor-default' : 'hover:bg-gray-700 text-gray-300 hover:text-white'}`}
+            onClick={dir === 'rtl' ? handleNextMonth : handlePrevMonth}
+            disabled={dir === 'rtl' && isCurrentMonth}
+            className={`p-2 rounded-full transition-colors ${dir === 'rtl' && isCurrentMonth ? 'opacity-0 cursor-default' : 'hover:bg-gray-700 text-gray-300 hover:text-white'}`}
         >
-            <ChevronRightIcon className="w-6 h-6" />
+           {dir === 'rtl' ? <ChevronRightIcon className="w-6 h-6" /> : <ChevronLeftIcon className="w-6 h-6" />}
         </button>
 
         <h3 className="font-bold text-xl bg-gradient-to-r from-sky-400 to-blue-400 bg-clip-text text-transparent">
-          {displayDate.toLocaleString('ar-EG', { month: 'long', year: 'numeric', calendar: 'gregory' })}
+          {displayDate.toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US', { month: 'long', year: 'numeric', calendar: 'gregory' })}
         </h3>
 
-        <button onClick={handlePrevMonth} className="p-2 rounded-full hover:bg-gray-700 transition-colors text-gray-300 hover:text-white">
-            <ChevronLeftIcon className="w-6 h-6" />
+        <button 
+            onClick={dir === 'rtl' ? handlePrevMonth : handleNextMonth}
+            disabled={dir === 'ltr' && isCurrentMonth} 
+            className={`p-2 rounded-full transition-colors ${dir === 'ltr' && isCurrentMonth ? 'opacity-0 cursor-default' : 'hover:bg-gray-700 text-gray-300 hover:text-white'}`}
+        >
+             {dir === 'rtl' ? <ChevronLeftIcon className="w-6 h-6" /> : <ChevronRightIcon className="w-6 h-6" />}
         </button>
       </div>
       
-      {/* Weekdays Header: text-[10px] on mobile to fit full names, text-sm on larger screens */}
       <div className="grid grid-cols-7 gap-1 text-center mb-2">
         {weekdays.map(day => (
             <div key={day} className="font-bold text-gray-400 p-1 text-[10px] sm:text-sm truncate">
@@ -165,13 +167,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
 
       <div className="grid grid-cols-7 gap-1">
         {calendarDays.map((day, index) => {
+          const isCurrentMonthDay = day.getMonth() === displayDate.getMonth();
+          const isSelected = selectedDate ? isSameDay(day, new Date(selectedDate + 'T00:00:00')) : false;
+          
           const year = day.getFullYear();
           const month = String(day.getMonth() + 1).padStart(2, '0');
           const date = String(day.getDate()).padStart(2, '0');
           const dayStr = `${year}-${month}-${date}`;
-
-          const isCurrentMonthDay = day.getMonth() === displayDate.getMonth();
-          const isSelected = selectedDate ? isSameDay(day, new Date(selectedDate + 'T00:00:00')) : false;
           
           const colors = dayStyles.get(dayStr);
           const style = getBackgroundStyle(colors);
@@ -180,16 +182,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
           let dayClasses = "";
           
           if (isSelected) {
-            // Selected day: White background with distinct ring/text
             dayClasses = "bg-white text-gray-900 font-bold scale-110 shadow-lg border-blue-500";
           } else if (style) {
-            // Workout day: Full background color (via style prop)
             dayClasses = "text-white font-bold shadow-md hover:opacity-90 border-transparent";
           } else if (isCurrentMonthDay) {
-             // Normal day
             dayClasses = "text-gray-200 hover:bg-gray-700 border-transparent";
           } else {
-             // Other month day
             dayClasses = "text-gray-600 border-transparent";
           }
           

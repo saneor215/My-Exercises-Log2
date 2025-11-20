@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import type { WorkoutEntry, BodyPartId, BodyPart, Exercise, WorkoutRoutine, WeeklySchedule, RoutineExercise } from '../types';
 import { SaveIcon, ClockIcon, ClipboardPlusIcon, CalendarIcon, PencilIcon } from './Icons';
 import { StartRoutineModal } from './StartRoutineModal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface WorkoutInputFormProps {
   onAddEntry: (entry: Omit<WorkoutEntry, 'id' | 'date' | 'image'>) => void;
@@ -14,22 +15,26 @@ interface WorkoutInputFormProps {
   log: WorkoutEntry[];
 }
 
-const CustomSelect: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }> = ({ children, ...props }) => (
-    <div className="relative">
-        <select
-            {...props}
-            className="w-full bg-gray-700 border-gray-600 text-white px-4 py-3 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
-        >
-            {children}
-        </select>
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center px-2 text-gray-400">
-            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+const CustomSelect: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }> = ({ children, ...props }) => {
+    const { dir } = useLanguage();
+    return (
+        <div className="relative">
+            <select
+                {...props}
+                className="w-full bg-gray-700 border-gray-600 text-white px-4 py-3 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+            >
+                {children}
+            </select>
+            <div className={`pointer-events-none absolute inset-y-0 ${dir === 'rtl' ? 'left-0' : 'right-0'} flex items-center px-2 text-gray-400`}>
+                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
         </div>
-    </div>
-);
+    );
+}
 
 
 export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, onAddMultipleEntries, bodyParts, exercises, routines, weeklySchedule, log }) => {
+  const { t } = useLanguage();
   const [selectedPart, setSelectedPart] = useState<BodyPartId | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<string>('');
   const [weight, setWeight] = useState<string>('');
@@ -107,7 +112,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPart || !selectedExercise) {
-      alert("الرجاء اختيار الجزء والتمرين");
+      alert(t('alert_select_part'));
       return;
     }
     const weightNum = parseFloat(weight);
@@ -115,15 +120,15 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
     const weekNum = parseInt(week, 10);
 
     if (isNaN(weekNum) || weekNum <= 0) {
-        alert("الرجاء إدخال رقم أسبوع صحيح");
+        alert(t('alert_valid_week'));
         return;
     }
     if (isNaN(weightNum) || weightNum <= 0) {
-        alert("الرجاء إدخال وزن صحيح");
+        alert(t('alert_valid_weight'));
         return;
     }
     if (isNaN(repsNum) || repsNum <= 0) {
-        alert("الرجاء إدخال عدد تكرارات صحيح");
+        alert(t('alert_valid_reps'));
         return;
     }
 
@@ -165,7 +170,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
           )}
           <span className="relative z-10 flex items-center justify-center gap-2">
               <ClockIcon className="w-5 h-5" />
-              {isTimerRunning ? `${timeLeft} ثانية متبقية` : 'مؤقت الراحة'}
+              {isTimerRunning ? `${timeLeft} ${t('timer_left')}` : t('timer_rest')}
           </span>
       </button>
       
@@ -180,14 +185,14 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                     <CalendarIcon className={`w-6 h-6 mt-1 flex-shrink-0 ${isTodayLogged ? 'text-green-400' : 'text-blue-400'}`} />
                     <div>
                         <p className={`text-xs font-bold uppercase tracking-wider ${isTodayLogged ? 'text-green-300' : 'text-blue-300'}`}>
-                            {isTodayLogged ? 'تم الإنجاز' : 'جدول اليوم'}
+                            {isTodayLogged ? t('completed') : t('today_schedule')}
                         </p>
                         <h3 className="text-lg sm:text-xl font-bold text-white leading-tight">{todayScheduledRoutine.name}</h3>
                     </div>
                  </div>
                  {isTodayLogged && (
                      <span className="self-start sm:self-center bg-green-500/20 text-green-300 border border-green-500/30 text-xs font-bold px-3 py-1 rounded-full animate-fade-in whitespace-nowrap">
-                         ✅ تم التسجيل
+                         ✅ {t('logged_today')}
                      </span>
                  )}
              </div>
@@ -201,7 +206,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                     : 'bg-blue-600 hover:bg-blue-500 text-white hover:shadow-blue-500/20 hover:shadow-lg'
                 }`}
              >
-                 {isTodayLogged ? 'تم تسجيل تمارين اليوم' : 'تسجيل تمارين اليوم سريعاً'}
+                 {isTodayLogged ? t('logged_today') : t('quick_log')}
              </button>
          </div>
       )}
@@ -213,7 +218,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
         className="w-full flex items-center justify-center gap-3 mb-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-400 disabled:bg-gray-600 disabled:cursor-not-allowed"
       >
         <ClipboardPlusIcon className="w-6 h-6" />
-        <span>{routines.length > 0 ? 'بدء تمرين من خطة' : 'أنشئ خطة أولاً في الإعدادات'}</span>
+        <span>{routines.length > 0 ? t('start_plan') : t('create_plan_first')}</span>
       </button>
 
       <div className="relative mb-6 mt-8">
@@ -223,14 +228,14 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
         <div className="relative flex justify-center">
             <span className="bg-gray-800 px-4 py-1.5 text-sm font-bold text-blue-400 border border-blue-500/20 rounded-full shadow-md flex items-center gap-2">
                 <PencilIcon className="w-4 h-4" />
-                أو قم بتسجيل تمرين مخصص يدوياً
+                {t('manual_entry')}
             </span>
         </div>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-lg font-medium text-gray-300 mb-3">اختر الجزء:</label>
+          <label className="block text-lg font-medium text-gray-300 mb-3">{t('choose_part')}</label>
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {bodyParts.map((part) => (
               <button
@@ -244,7 +249,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                 }`}
               >
                 <span className="block text-xl mb-1">{part.icon}</span>
-                {part.name}
+                {t(`part_${part.id}` as any) || part.name}
               </button>
             ))}
           </div>
@@ -253,14 +258,14 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
         {selectedPart && (
             <div className="animate-fade-in space-y-4">
                 <div>
-                    <label htmlFor="exercise-select" className="block text-sm font-medium text-gray-300 mb-2">التمرين</label>
+                    <label htmlFor="exercise-select" className="block text-sm font-medium text-gray-300 mb-2">{t('exercise')}</label>
                     <CustomSelect id="exercise-select" value={selectedExercise} onChange={(e) => setSelectedExercise(e.target.value)} disabled={!exercises[selectedPart] || exercises[selectedPart].length === 0}>
                         {exercises[selectedPart] && exercises[selectedPart].length > 0 ? (
                            exercises[selectedPart].map((ex) => (
                                 <option key={ex.name} value={ex.name}>{ex.name}</option>
                             ))
                         ) : (
-                            <option>لا توجد تمارين لهذا الجزء</option>
+                            <option>{t('no_exercises')}</option>
                         )}
                     </CustomSelect>
                 </div>
@@ -274,20 +279,19 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                 )}
                 
                 <div>
-                    <label htmlFor="comment" className="block text-sm font-medium text-gray-300 mb-2">تعليق (اختياري)</label>
+                    <label htmlFor="comment" className="block text-sm font-medium text-gray-300 mb-2">{t('comment')} ({t('notes')})</label>
                     <textarea 
                         id="comment"
                         value={comment}
                         onChange={e => setComment(e.target.value)}
                         rows={2}
-                        placeholder='مثال: الوزن كان جيداً...'
                         className="w-full bg-gray-700 border-gray-600 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
                     />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                        <label htmlFor="weight-input" className="block text-sm font-medium text-gray-300 mb-2">الوزن (كجم)</label>
+                        <label htmlFor="weight-input" className="block text-sm font-medium text-gray-300 mb-2">{t('weight')} ({t('kg')})</label>
                         <input
                             id="weight-input"
                             type="number"
@@ -302,7 +306,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                         />
                     </div>
                     <div>
-                        <label htmlFor="reps-input" className="block text-sm font-medium text-gray-300 mb-2">التكرارات</label>
+                        <label htmlFor="reps-input" className="block text-sm font-medium text-gray-300 mb-2">{t('reps')}</label>
                          <input
                             id="reps-input"
                             type="number"
@@ -318,7 +322,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                     </div>
                 </div>
                  <div>
-                    <label htmlFor="week-input" className="block text-sm font-medium text-gray-300 mb-2">رقم الأسبوع</label>
+                    <label htmlFor="week-input" className="block text-sm font-medium text-gray-300 mb-2">{t('week_num')}</label>
                     <input
                         id="week-input"
                         type="number"
@@ -327,7 +331,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                         min="1"
                         value={week}
                         onChange={(e) => setWeek(e.target.value)}
-                        placeholder="مثال: 4"
+                        placeholder="4"
                         className="w-full bg-gray-700 border-gray-600 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-center font-bold"
                         required
                     />
@@ -340,7 +344,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                         className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg focus:outline-none focus:ring-4 focus:ring-emerald-400"
                     >
                         <SaveIcon className="w-5 h-5" />
-                        <span>حفظ التمرين</span>
+                        <span>{t('save_workout')}</span>
                     </button>
                 </div>
             </div>
@@ -362,15 +366,3 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
     </div>
   );
 };
-
-const style = document.createElement('style');
-style.innerHTML = `
-@keyframes fade-in {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out forwards;
-}
-`;
-document.head.appendChild(style);

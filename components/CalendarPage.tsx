@@ -1,11 +1,11 @@
 
 import React, { useState, useMemo } from 'react';
-import type { WorkoutEntry, BodyPart, Exercise, BodyPartId, WeeklySchedule, WorkoutRoutine, RoutineExercise } from '../types';
+import type { WorkoutEntry, BodyPart, Exercise, BodyPartId, WeeklySchedule, WorkoutRoutine } from '../types';
 import { CalendarView } from './CalendarView';
 import { LogItem } from './LogItem';
 import { EditWorkoutModal } from './EditWorkoutModal';
 import { ImageModal } from './ImageModal';
-
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface CalendarPageProps {
   log: WorkoutEntry[];
@@ -18,6 +18,7 @@ interface CalendarPageProps {
 }
 
 export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, onUpdateEntry, bodyParts, exercises, weeklySchedule, routines }) => {
+    const { t, language } = useLanguage();
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [editingEntry, setEditingEntry] = useState<WorkoutEntry | null>(null);
     const [viewingImage, setViewingImage] = useState<{src: string; alt: string} | null>(null);
@@ -45,10 +46,9 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
         return validLog.filter(entry => {
             const entryDate = new Date(entry.date);
             return entryDate >= startOfDay && entryDate <= endOfDay;
-        }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Sort Chronologically (Oldest -> Newest)
+        }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }, [validLog, selectedDate]);
     
-    // Group entries by part for display
     const entriesByPart = useMemo(() => {
         return filteredLog.reduce((acc, entry) => {
             if (!acc[entry.part]) acc[entry.part] = [];
@@ -57,7 +57,6 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
         }, {} as Record<string, WorkoutEntry[]>);
     }, [filteredLog]);
 
-    // Calculate Day Summary (Stats)
     const daySummary = useMemo(() => {
       if (filteredLog.length === 0) return null;
       const totalSets = filteredLog.length;
@@ -67,13 +66,11 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
       return { totalSets, totalVolume, uniqueExercises, weekNum };
     }, [filteredLog]);
 
-    // Calculate Unique Parts for Badges
     const uniqueDayParts = useMemo(() => {
       const partIds = new Set(filteredLog.map(e => e.part));
       return bodyParts.filter(p => partIds.has(p.id));
     }, [filteredLog, bodyParts]);
 
-    // Determine if there is a scheduled routine for the selected date
     const scheduledRoutineForSelectedDate = useMemo<WorkoutRoutine | null>(() => {
         if (!selectedDate || !weeklySchedule || !routines) return null;
         const [year, month, day] = selectedDate.split('-').map(Number);
@@ -94,14 +91,14 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
     const formattedSelectedDate = useMemo(() => {
         if (!selectedDate) return '';
         const date = new Date(selectedDate + 'T00:00:00');
-        return date.toLocaleDateString('ar-EG', {
+        return date.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
             weekday: 'long',
             day: 'numeric',
             month: 'long',
             year: 'numeric',
             calendar: 'gregory',
         });
-    }, [selectedDate]);
+    }, [selectedDate, language]);
 
     return (
         <div className="space-y-8">
@@ -120,46 +117,43 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
 
                     {filteredLog.length > 0 ? (
                         <div className="space-y-6">
-                            {/* Badges Section */}
                             <div className="flex justify-center gap-3 flex-wrap">
                                 {uniqueDayParts.map(part => (
                                     <div key={part.id} className={`flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r ${part.gradient} text-white shadow-lg transform hover:scale-105 transition-transform cursor-default`}>
                                         <span className="text-2xl">{part.icon}</span>
-                                        <span className="font-bold text-lg">{part.name}</span>
+                                        <span className="font-bold text-lg">{t(`part_${part.id}` as any) || part.name}</span>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* Stats Section */}
                             {daySummary && (
                                 <div className="grid grid-cols-4 gap-2 sm:gap-4 text-center bg-gray-700/30 p-4 rounded-xl border border-gray-600/20">
                                     <div>
-                                        <p className="text-xs text-gray-400 mb-1">الأسبوع</p>
+                                        <p className="text-xs text-gray-400 mb-1">{t('week')}</p>
                                         <p className="text-lg sm:text-xl font-bold text-yellow-400">{daySummary.weekNum}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-400 mb-1">التمارين</p>
+                                        <p className="text-xs text-gray-400 mb-1">{t('exercises')}</p>
                                         <p className="text-lg sm:text-xl font-bold text-blue-400">{daySummary.uniqueExercises}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-400 mb-1">مجموعات</p>
+                                        <p className="text-xs text-gray-400 mb-1">{t('sets')}</p>
                                         <p className="text-lg sm:text-xl font-bold text-cyan-400">{daySummary.totalSets}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-400 mb-1">الحمل</p>
+                                        <p className="text-xs text-gray-400 mb-1">{t('volume')}</p>
                                         <p className="text-lg sm:text-xl font-bold text-purple-400">{(daySummary.totalVolume / 1000).toFixed(1)}k</p>
                                     </div>
                                 </div>
                             )}
 
-                            {/* Grouped List by Body Part */}
                             <div className="space-y-6">
                                 {Object.entries(entriesByPart).map(([partId, partEntries]) => {
                                     const part = bodyParts.find(p => p.id === partId);
                                     return (
                                         <div key={partId} className="bg-gray-900/30 border border-gray-700/50 p-4 rounded-2xl">
                                             <h4 className="text-sm font-bold text-gray-400 mb-3 flex items-center gap-2">
-                                                {part?.icon} تمارين {part?.name}
+                                                {part?.icon} {t('exercises')} {t(`part_${part?.id}` as any) || part?.name}
                                             </h4>
                                             <div className="space-y-3">
                                                 {partEntries.map(entry => (
@@ -180,9 +174,9 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
                         </div>
                     ) : scheduledRoutineForSelectedDate ? (
                          <div className="text-center p-8 border-2 border-dashed border-blue-500/30 bg-blue-900/10 rounded-xl">
-                                <p className="text-lg font-bold text-blue-200 mb-2">جدول اليوم: {scheduledRoutineForSelectedDate.name}</p>
-                                <p className="text-gray-400 mb-4">لم يتم تسجيل التمارين لهذا اليوم بعد.</p>
-                                <ul className="text-sm text-gray-300 space-y-1 mb-4 inline-block text-right bg-gray-800/50 p-4 rounded-lg">
+                                <p className="text-lg font-bold text-blue-200 mb-2">{t('day_schedule')} {scheduledRoutineForSelectedDate.name}</p>
+                                <p className="text-gray-400 mb-4">{t('not_logged_yet')}</p>
+                                <ul className={`text-sm text-gray-300 space-y-1 mb-4 inline-block ${language === 'ar' ? 'text-right' : 'text-left'} bg-gray-800/50 p-4 rounded-lg`}>
                                     {scheduledRoutineForSelectedDate.exercises.map((ex, idx) => (
                                         <li key={idx} className="flex items-center gap-2">
                                             <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
@@ -193,7 +187,7 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
                         </div>
                     ) : (
                         <div className="text-center text-gray-500 p-8 border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center">
-                            <p>لا توجد تمارين مسجلة في هذا اليوم.</p>
+                            <p>{t('no_logs_day')}</p>
                         </div>
                     )}
                 </div>

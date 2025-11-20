@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ModalProps {
   isOpen: boolean;
@@ -18,10 +19,11 @@ export const Modal: React.FC<ModalProps> = ({
   onConfirm, 
   title, 
   children, 
-  confirmText = 'Confirm', 
-  cancelText = 'Cancel',
+  confirmText, 
+  cancelText,
   confirmButtonClass 
 }) => {
+  const { t } = useLanguage();
   if (!isOpen) return null;
 
   return (
@@ -40,19 +42,19 @@ export const Modal: React.FC<ModalProps> = ({
           {children}
         </div>
         <div className="flex justify-end gap-4">
-          {cancelText && (
+          {cancelText !== null && (
             <button
               onClick={onClose}
               className="px-6 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 text-white font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400"
             >
-              {cancelText}
+              {cancelText || t('cancel')}
             </button>
           )}
           <button
             onClick={onConfirm}
             className={`px-6 py-2 rounded-lg text-white font-semibold transition-colors focus:outline-none focus:ring-2 ${confirmButtonClass ? confirmButtonClass : 'bg-red-600 hover:bg-red-500 focus:ring-red-400'}`}
           >
-            {confirmText}
+            {confirmText || t('confirm')}
           </button>
         </div>
       </div>

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import type { BodyPart, Exercise, BodyPartId, WorkoutRoutine, WorkoutEntry, RoutineExercise } from '../types';
 import { XIcon } from './Icons';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface StartRoutineModalProps {
     isOpen: boolean;
@@ -23,13 +24,13 @@ type EntryData = {
 export const StartRoutineModal: React.FC<StartRoutineModalProps> = ({
     isOpen, onClose, onSave, routines, bodyParts, exercises, log, initialRoutineId
 }) => {
+    const { t } = useLanguage();
     const [selectedRoutineId, setSelectedRoutineId] = useState<string>('');
     const [week, setWeek] = useState('');
     const [entriesData, setEntriesData] = useState<EntryData[]>([]);
     
     const selectedRoutine = routines.find(r => r.id === selectedRoutineId);
     
-    // Handle Initial Routine Selection
     useEffect(() => {
         if (isOpen) {
             if (initialRoutineId) {
@@ -40,7 +41,6 @@ export const StartRoutineModal: React.FC<StartRoutineModalProps> = ({
         }
     }, [isOpen, initialRoutineId, routines, selectedRoutineId]);
 
-    // Suggest Week Number based on history
     useEffect(() => {
         if (isOpen) {
             if (log.length > 0) {
@@ -52,7 +52,6 @@ export const StartRoutineModal: React.FC<StartRoutineModalProps> = ({
         }
     }, [isOpen, log]);
 
-    // Auto-fill weights from history
     useEffect(() => {
         if (selectedRoutine) {
             const newEntries = selectedRoutine.exercises.map(re => {
@@ -89,7 +88,7 @@ export const StartRoutineModal: React.FC<StartRoutineModalProps> = ({
 
         const weekNum = parseInt(week, 10);
         if (isNaN(weekNum) || weekNum <= 0) {
-            alert("الرجاء إدخال رقم أسبوع صحيح.");
+            alert(t('alert_valid_week'));
             return;
         }
 
@@ -103,7 +102,7 @@ export const StartRoutineModal: React.FC<StartRoutineModalProps> = ({
             if (!data.weight && !data.reps) continue;
 
             if (isNaN(weightNum) || isNaN(repsNum) || weightNum <= 0 || repsNum <= 0) {
-                alert(`الرجاء إدخال قيم صالحة للتمرين: ${routineEx.exerciseName}`);
+                alert(t('alert_valid_weight') + `: ${routineEx.exerciseName}`);
                 return;
             }
             
@@ -118,7 +117,7 @@ export const StartRoutineModal: React.FC<StartRoutineModalProps> = ({
         }
         
         if (entriesToSave.length === 0) {
-            alert("الرجاء إدخال بيانات تمرين واحد على الأقل.");
+            alert(t('alert_enter_valid'));
             return;
         }
 
@@ -129,24 +128,22 @@ export const StartRoutineModal: React.FC<StartRoutineModalProps> = ({
     return (
         <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex justify-center items-center p-4" onClick={onClose}>
             <div className="bg-gray-800 rounded-2xl shadow-xl w-full max-w-3xl ring-1 ring-white/10 flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-                {/* Header */}
                 <div className="p-4 sm:p-6 border-b border-gray-700 flex justify-between items-center">
-                    <h2 className="text-xl sm:text-2xl font-bold text-white">بدء تمرين من خطة</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">{t('start_plan')}</h2>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-700 text-gray-400 hover:text-white"><XIcon className="w-6 h-6"/></button>
                 </div>
                 
-                {/* Content (Scrollable) */}
                 <div className="overflow-y-auto p-4 sm:p-6 flex-1 space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-700/30 p-4 rounded-xl">
                         <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-1">الخطة المختارة</label>
+                            <label className="block text-sm font-medium text-gray-400 mb-1">{t('plan_selected')}</label>
                             <select value={selectedRoutineId} onChange={e => setSelectedRoutineId(e.target.value)} className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 {routines.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-1">رقم الأسبوع</label>
-                            <input type="number" min="1" value={week} onChange={e => setWeek(e.target.value)} placeholder="رقم الأسبوع" className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-center" required />
+                            <label className="block text-sm font-medium text-gray-400 mb-1">{t('week_num')}</label>
+                            <input type="number" min="1" value={week} onChange={e => setWeek(e.target.value)} placeholder="4" className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-center" required />
                         </div>
                     </div>
                     
@@ -166,25 +163,24 @@ export const StartRoutineModal: React.FC<StartRoutineModalProps> = ({
                                     </div>
                                     <div className="grid grid-cols-2 gap-3 mb-3">
                                         <div>
-                                            <label className="block text-xs text-gray-400 mb-1 text-center">الوزن (كجم)</label>
-                                            <input type="number" inputMode="decimal" value={data.weight} onChange={e => handleDataChange(index, 'weight', e.target.value)} placeholder={data.weight ? `آخر: ${data.weight}` : "-"} className="w-full bg-gray-800 border border-gray-600 text-white px-3 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center font-bold text-lg" />
+                                            <label className="block text-xs text-gray-400 mb-1 text-center">{t('weight')} ({t('kg')})</label>
+                                            <input type="number" inputMode="decimal" value={data.weight} onChange={e => handleDataChange(index, 'weight', e.target.value)} placeholder={data.weight ? `${data.weight}` : "-"} className="w-full bg-gray-800 border border-gray-600 text-white px-3 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center font-bold text-lg" />
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-gray-400 mb-1 text-center">التكرارات</label>
-                                            <input type="number" inputMode="numeric" value={data.reps} onChange={e => handleDataChange(index, 'reps', e.target.value)} placeholder={data.reps ? `آخر: ${data.reps}` : "-"} className="w-full bg-gray-800 border border-gray-600 text-white px-3 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center font-bold text-lg" />
+                                            <label className="block text-xs text-gray-400 mb-1 text-center">{t('reps')}</label>
+                                            <input type="number" inputMode="numeric" value={data.reps} onChange={e => handleDataChange(index, 'reps', e.target.value)} placeholder={data.reps ? `${data.reps}` : "-"} className="w-full bg-gray-800 border border-gray-600 text-white px-3 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center font-bold text-lg" />
                                         </div>
                                     </div>
-                                    <input type="text" value={data.comment} onChange={e => handleDataChange(index, 'comment', e.target.value)} placeholder="ملاحظات..." className="w-full bg-gray-700/50 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm placeholder-gray-500" />
+                                    <input type="text" value={data.comment} onChange={e => handleDataChange(index, 'comment', e.target.value)} placeholder={t('notes')} className="w-full bg-gray-700/50 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm placeholder-gray-500" />
                                 </div>
                              );
                         })}
                     </div>
                 </div>
                 
-                {/* Footer */}
                 <div className="p-4 sm:p-6 border-t border-gray-700 bg-gray-800 rounded-b-2xl flex gap-3">
-                    <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-bold transition-colors">إلغاء</button>
-                    <button onClick={handleSaveAll} className="flex-[2] py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-lg transition-colors">حفظ كل التمارين</button>
+                    <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-bold transition-colors">{t('cancel')}</button>
+                    <button onClick={handleSaveAll} className="flex-[2] py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-lg transition-colors">{t('save_all')}</button>
                 </div>
             </div>
         </div>

@@ -6,9 +6,9 @@ import { Modal } from './Modal';
 import { ManageRoutineModal } from './ManageRoutineModal';
 import { ManageFoodItemModal } from './ManageFoodItemModal';
 import { WEEKDAYS_MAP } from '../constants';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SettingsPageProps {
-  // Workout props
   bodyParts: BodyPart[];
   setBodyParts: React.Dispatch<React.SetStateAction<BodyPart[]>>;
   exercises: Record<BodyPartId, Exercise[]>;
@@ -19,19 +19,16 @@ interface SettingsPageProps {
   deleteRoutine: (id: string) => void;
   weeklySchedule: WeeklySchedule;
   setWeeklySchedule: React.Dispatch<React.SetStateAction<WeeklySchedule>>;
-  // Nutrition props
   nutritionGoals: NutritionGoals;
   setNutritionGoals: React.Dispatch<React.SetStateAction<NutritionGoals>>;
   foodDatabase: FoodItem[];
   addFoodToDatabase: (food: Omit<FoodItem, 'id'>) => FoodItem;
   updateFoodInDatabase: (food: FoodItem) => void;
   deleteFoodFromDatabase: (id: string) => void;
-  // Data props
   onImportData: (data: AppData) => void;
   onExportData: () => AppData;
 }
 
-// --- Helper Functions and Sub-components ---
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -41,14 +38,13 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
-// Image compression helper
 const compressImage = (base64: string): Promise<string> => {
     return new Promise((resolve) => {
         const img = new Image();
         img.src = base64;
         img.onload = () => {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 500; // Sufficient for thumbnails
+            const MAX_WIDTH = 500;
             let width = img.width;
             let height = img.height;
 
@@ -62,7 +58,6 @@ const compressImage = (base64: string): Promise<string> => {
             const ctx = canvas.getContext('2d');
             if (ctx) {
                 ctx.drawImage(img, 0, 0, width, height);
-                // Convert to JPEG with 70% quality to save significant space
                 resolve(canvas.toDataURL('image/jpeg', 0.7));
             } else {
                 resolve(base64);
@@ -72,7 +67,6 @@ const compressImage = (base64: string): Promise<string> => {
     });
 };
 
-// Other modals remain largely the same, but let's re-include ManagePartModal for completeness
 const COLOR_SCHEMES = [
     { color: 'rose', gradient: 'from-rose-500 to-pink-500' },
     { color: 'fuchsia', gradient: 'from-fuchsia-500 to-purple-500' },
@@ -91,6 +85,7 @@ const ManagePartModal: React.FC<{
   onAddExercise: (newExercise: Exercise) => void;
   onDeleteExercise: (index: number) => void;
 }> = ({ part, exercisesForPart, onClose, onUpdatePartName, onUpdateExercise, onAddExercise, onDeleteExercise }) => {
+    const { t } = useLanguage();
     const [partName, setPartName] = useState(part.name);
     const [newExerciseName, setNewExerciseName] = useState('');
     const [newExerciseImage, setNewExerciseImage] = useState<string | null>(null);
@@ -107,7 +102,7 @@ const ManagePartModal: React.FC<{
                 callback(compressedBase64);
             } catch (error) {
                 console.error("Error converting file:", error);
-                alert("فشل رفع الصورة.");
+                alert("Failed to upload image");
             } finally {
                 setIsProcessingImage(false);
             }
@@ -122,7 +117,7 @@ const ManagePartModal: React.FC<{
 
     const handleAddNewExercise = () => {
         if (!newExerciseName.trim() || !newExerciseImage) {
-            alert("الرجاء إدخال اسم التمرين ورفع صورة.");
+            alert("Please enter name and image");
             return;
         }
         const newExercise = { name: newExerciseName.trim(), image: newExerciseImage };
@@ -142,20 +137,20 @@ const ManagePartModal: React.FC<{
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4" onClick={onClose}>
             <div className="bg-gray-800 rounded-2xl shadow-xl w-full max-w-2xl p-6 ring-1 ring-white/10 max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold text-white">إدارة: {part.name}</h2>
+                    <h2 className="text-2xl font-bold text-white">{t('manage_part')}: {t(`part_${part.id}` as any) || part.name}</h2>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-700"><XIcon className="w-6 h-6"/></button>
                 </div>
                 
                 <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">تعديل اسم الجزء</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">{t('edit_part_name')}</label>
                     <div className="flex gap-2">
                         <input type="text" value={partName} onChange={e => setPartName(e.target.value)} onBlur={handleUpdatePartName} className="flex-grow bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <button onClick={handleUpdatePartName} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg">حفظ الاسم</button>
+                        <button onClick={handleUpdatePartName} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg">{t('save_name')}</button>
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-4">
-                    <h3 className="text-xl font-bold text-gray-200 border-b border-gray-700 pb-2">التمارين</h3>
+                    <h3 className="text-xl font-bold text-gray-200 border-b border-gray-700 pb-2">{t('exercises_list')}</h3>
                     {exercisesForPart.map((exercise, index) => (
                         <div key={index} className="bg-gray-700/50 p-3 rounded-lg flex items-center gap-4">
                             <img src={exercise.image} alt={exercise.name} className="w-16 h-16 rounded-md object-cover"/>
@@ -179,10 +174,10 @@ const ManagePartModal: React.FC<{
                 </div>
                  
                 <div className="mt-6 pt-4 border-t border-gray-700">
-                     <h3 className="text-xl font-bold text-gray-200 mb-2">إضافة تمرين جديد</h3>
+                     <h3 className="text-xl font-bold text-gray-200 mb-2">{t('add_new_exercise')}</h3>
                      <div className="flex items-start gap-4">
                         <div className="flex-grow space-y-2">
-                           <input type="text" value={newExerciseName} onChange={e => setNewExerciseName(e.target.value)} placeholder="اسم التمرين الجديد" className="w-full bg-gray-700 text-white px-3 py-2 rounded-md"/>
+                           <input type="text" value={newExerciseName} onChange={e => setNewExerciseName(e.target.value)} placeholder={t('exercise_name_new')} className="w-full bg-gray-700 text-white px-3 py-2 rounded-md"/>
                            <input 
                                 ref={newExerciseFileRef} 
                                 type="file" 
@@ -194,7 +189,7 @@ const ManagePartModal: React.FC<{
                         </div>
                         {newExerciseImage && <img src={newExerciseImage} alt="Preview" className="w-16 h-16 rounded-md object-cover"/>}
                         <button onClick={handleAddNewExercise} disabled={isProcessingImage} className="self-center bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg h-full disabled:bg-gray-600">
-                            {isProcessingImage ? 'جاري الرفع...' : 'إضافة'}
+                            {isProcessingImage ? t('uploading') : t('add')}
                         </button>
                      </div>
                 </div>
@@ -203,24 +198,23 @@ const ManagePartModal: React.FC<{
                     isOpen={exerciseToDelete !== null}
                     onClose={() => setExerciseToDelete(null)}
                     onConfirm={confirmDeleteExercise}
-                    title="تأكيد حذف التمرين"
-                    confirmText="نعم, احذف"
-                    cancelText="إلغاء"
+                    title={t('confirm_delete_part')} 
+                    confirmText={t('delete')}
+                    cancelText={t('cancel')}
                 >
-                    <p>هل أنت متأكد أنك تريد حذف هذا التمرين؟</p>
+                    <p>Delete this exercise?</p>
                 </Modal>
             </div>
         </div>
     );
 };
 
-// --- MAIN SETTINGS PAGE COMPONENT ---
 export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
+    const { t, dir, language } = useLanguage();
     const { bodyParts, setBodyParts, exercises, setExercises, routines, addRoutine, updateRoutine, deleteRoutine, weeklySchedule, setWeeklySchedule } = props;
     const { nutritionGoals, setNutritionGoals, foodDatabase, addFoodToDatabase, updateFoodInDatabase, deleteFoodFromDatabase } = props;
     const { onImportData, onExportData } = props;
 
-    // State for modals
     const [managingPart, setManagingPart] = useState<BodyPart | null>(null);
     const [partToDelete, setPartToDelete] = useState<BodyPart | null>(null);
     const [managingRoutine, setManagingRoutine] = useState<WorkoutRoutine | 'new' | null>(null);
@@ -229,13 +223,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
     const [foodItemToDelete, setFoodItemToDelete] = useState<FoodItem | null>(null);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
-    // State for inputs
     const [newPartName, setNewPartName] = useState('');
     const [editedGoals, setEditedGoals] = useState(nutritionGoals);
     const [foodSearch, setFoodSearch] = useState('');
     const [selectedFoodItem, setSelectedFoodItem] = useState<FoodItem | null>(null);
 
-    
     const fileInputRef = useRef<HTMLInputElement>(null);
     const importedDataRef = useRef<AppData | null>(null);
 
@@ -245,17 +237,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
         return foodDatabase.filter(item =>
             item.name.toLowerCase().includes(searchLower) ||
             item.keywords?.some(k => k.toLowerCase().includes(searchLower))
-        ).slice(0, 10); // Limit results for performance
+        ).slice(0, 10);
     }, [foodSearch, foodDatabase]);
 
-    // --- WORKOUT HANDLERS ---
     const handleAddPart = () => {
         if (!newPartName.trim()) {
-            alert("الرجاء إدخال اسم للجزء الجديد.");
+            alert("Please enter a part name");
             return;
         }
         const newPartId = newPartName.trim().toLowerCase().replace(/\s+/g, '-');
-        if (bodyParts.some(p => p.id === newPartId)) { alert('هذا الجزء موجود بالفعل.'); return; }
+        if (bodyParts.some(p => p.id === newPartId)) { alert('Exists'); return; }
         const colorScheme = COLOR_SCHEMES[bodyParts.length % COLOR_SCHEMES.length];
         const icon = EMOJI_ICONS[bodyParts.length % EMOJI_ICONS.length];
         setBodyParts(prev => [...prev, { id: newPartId, name: newPartName.trim(), icon, ...colorScheme }]);
@@ -270,7 +261,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
         setPartToDelete(null);
     };
 
-    // ... other workout handlers (updatePartName, exercise handlers) are passed to the modal
     const handleUpdatePartName = (partId: BodyPartId, newName: string) => {
         setBodyParts(prev => prev.map(p => p.id === partId ? {...p, name: newName} : p));
         setManagingPart(prev => prev ? {...prev, name: newName} : null);
@@ -287,7 +277,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
         }));
     };
 
-    // --- NUTRITION HANDLERS ---
     const handleGoalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setEditedGoals(prev => ({ ...prev, [name]: Number(value) || 0 }));
@@ -296,10 +285,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
     const handleSaveFoodItem = (foodData: Omit<FoodItem, 'id'> | FoodItem) => {
         if ('id' in foodData) {
             updateFoodInDatabase(foodData);
-            setSelectedFoodItem(foodData); // Update the displayed card
+            setSelectedFoodItem(foodData);
         } else {
             const newFood = addFoodToDatabase(foodData);
-            setSelectedFoodItem(newFood); // Select the newly created item
+            setSelectedFoodItem(newFood);
         }
         setFoodSearch('');
     };
@@ -317,7 +306,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
         }
     };
 
-    // --- DATA HANDLERS ---
     const handleExport = () => {
         const data = onExportData();
         const jsonString = JSON.stringify(data, null, 2);
@@ -340,12 +328,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
         reader.onload = (e) => {
             try {
                 const data = JSON.parse(e.target?.result as string);
-                // Simple validation to ensure it's our app data
                 if (data && data.log && data.foodDatabase) {
                     importedDataRef.current = data;
                     setIsImportModalOpen(true);
-                } else { throw new Error("بنية الملف غير صالحة."); }
-            } catch (error) { alert(`فشل استيراد الملف. ${error instanceof Error ? error.message : "خطأ غير معروف"}`); }
+                } else { throw new Error("Invalid file"); }
+            } catch (error) { alert(`Import failed. ${error instanceof Error ? error.message : "Unknown"}`); }
             finally { if (event.target) event.target.value = ''; }
         };
         reader.readAsText(file);
@@ -361,21 +348,19 @@ export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
     return (
         <div className="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg ring-1 ring-white/10 space-y-12">
             
-            {/* WORKOUT MANAGEMENT */}
             <section>
-                <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-sky-400 to-blue-400 bg-clip-text text-transparent mb-6">🏋️ إدارة التمارين</h2>
-                {/* Body Parts */}
+                <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-sky-400 to-blue-400 bg-clip-text text-transparent mb-6">{t('settings_workout')}</h2>
                 <div className="space-y-4">
-                    <h3 className="text-xl font-bold text-gray-200">الأجزاء الحالية</h3>
+                    <h3 className="text-xl font-bold text-gray-200">{t('current_parts')}</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {bodyParts.map(part => (
                             <div key={part.id} className="bg-gray-700/50 rounded-xl shadow-lg flex flex-col overflow-hidden ring-1 ring-white/10">
                                 <div className={`p-4 bg-gradient-to-r ${part.gradient}`}>
-                                    <span className="font-bold text-lg text-white">{part.icon} {part.name}</span>
+                                    <span className="font-bold text-lg text-white">{part.icon} {t(`part_${part.id}` as any) || part.name}</span>
                                 </div>
                                 <div className="p-3 flex items-center justify-end gap-2">
                                     <button onClick={() => setManagingPart(part)} className="flex-grow bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-3 rounded-lg text-sm transition-colors">
-                                        إدارة التمارين
+                                        {t('manage_exercises')}
                                     </button>
                                     <button onClick={() => setPartToDelete(part)} className="flex-shrink-0 p-2 rounded-full bg-gray-600 hover:bg-red-500/90 text-gray-300 hover:text-white transition-colors">
                                         <TrashIcon className="w-5 h-5" />
@@ -385,53 +370,52 @@ export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
                         ))}
                     </div>
                 </div>
-                {/* Add Part */}
                 <div className="pt-8 mt-8 border-t border-gray-700">
-                    <h3 className="text-xl font-bold text-gray-200 mb-2">إضافة جزء جديد</h3>
+                    <h3 className="text-xl font-bold text-gray-200 mb-2">{t('add_part')}</h3>
                     <div className="flex flex-col sm:flex-row gap-2">
-                        <input type="text" value={newPartName} onChange={e => setNewPartName(e.target.value)} placeholder="مثال: كارديو" className="flex-grow bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                        <button onClick={handleAddPart} className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg">إضافة جزء</button>
+                        <input type="text" value={newPartName} onChange={e => setNewPartName(e.target.value)} placeholder={t('part_placeholder')} className="flex-grow bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                        <button onClick={handleAddPart} className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg">{t('add_part_btn')}</button>
                     </div>
                 </div>
-                {/* Routines */}
                 <div className="pt-8 mt-8 border-t border-gray-700 space-y-4">
-                    <h3 className="text-xl font-bold text-gray-200">خطط التمارين</h3>
+                    <h3 className="text-xl font-bold text-gray-200">{t('workout_plans')}</h3>
                      {routines.map(routine => (
                         <div key={routine.id} className="bg-gray-700/50 p-4 rounded-lg flex items-center justify-between">
                             <span className="font-bold text-lg text-white">{routine.name}</span>
                             <div className="flex items-center gap-2">
-                                <button onClick={() => setManagingRoutine(routine)} className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg text-sm">تعديل</button>
+                                <button onClick={() => setManagingRoutine(routine)} className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg text-sm">{t('edit')}</button>
                                 <button onClick={() => setRoutineToDelete(routine)} className="p-2 rounded-full bg-red-600/80 hover:bg-red-500 text-white"><TrashIcon className="w-5 h-5" /></button>
                             </div>
                         </div>
                     ))}
-                    <button onClick={() => setManagingRoutine('new')} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg">إنشاء خطة جديدة</button>
+                    <button onClick={() => setManagingRoutine('new')} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg">{t('create_new_plan')}</button>
                 </div>
 
-                 {/* Weekly Schedule */}
                  <div className="pt-8 mt-8 border-t border-gray-700">
                     <div className="flex items-center gap-2 mb-4">
                         <CalendarIcon className="w-6 h-6 text-yellow-400" />
-                        <h3 className="text-xl font-bold text-gray-200">جدول التمارين الأسبوعي</h3>
+                        <h3 className="text-xl font-bold text-gray-200">{t('weekly_schedule')}</h3>
                     </div>
-                    <p className="text-gray-400 text-sm mb-4">حدد خطة لكل يوم من أيام الأسبوع ليتم تذكيرك بها وتعبئتها تلقائيًا.</p>
+                    <p className="text-gray-400 text-sm mb-4">{t('schedule_desc')}</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {WEEKDAYS_MAP.map(day => (
+                        {WEEKDAYS_MAP.map((day, idx) => (
                             <div key={day.id} className="bg-gray-700/50 p-4 rounded-lg flex items-center justify-between gap-4">
-                                <span className="font-bold text-white min-w-[60px]">{day.name}</span>
+                                <span className="font-bold text-white min-w-[60px]">
+                                    {language === 'ar' ? day.name : ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'][idx]}
+                                </span>
                                 <div className="relative flex-grow">
                                     <select 
                                         value={weeklySchedule[day.id] || ''} 
                                         onChange={(e) => handleScheduleChange(day.id, e.target.value)}
                                         className="w-full bg-gray-600 text-white px-3 py-2 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
-                                        <option value="">راحة / غير محدد</option>
+                                        <option value="">{t('rest_day')}</option>
                                         {routines.map(r => (
                                             <option key={r.id} value={r.id}>{r.name}</option>
                                         ))}
                                     </select>
-                                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center px-2 text-gray-400">
+                                     <div className={`pointer-events-none absolute inset-y-0 ${dir === 'rtl' ? 'left-0' : 'right-0'} flex items-center px-2 text-gray-400`}>
                                         <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                                     </div>
                                 </div>
@@ -441,58 +425,55 @@ export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
                 </div>
             </section>
 
-            {/* NUTRITION MANAGEMENT */}
             <section className="pt-8 border-t border-gray-700">
-                <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-400 to-lime-300 bg-clip-text text-transparent mb-6">🍎 إدارة التغذية</h2>
-                 {/* Goals */}
+                <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-400 to-lime-300 bg-clip-text text-transparent mb-6">{t('settings_nutrition')}</h2>
                 <div>
-                    <h3 className="text-xl font-bold text-gray-200 mb-4">أهدافك اليومية</h3>
+                    <h3 className="text-xl font-bold text-gray-200 mb-4">{t('daily_goals')}</h3>
                     <div className="space-y-4 md:space-y-0 md:flex md:items-end md:gap-4 flex-wrap">
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-grow">
                              <div>
-                                <label htmlFor="goal-calories" className="block text-sm font-medium text-gray-200 mb-1">السعرات الحرارية</label>
+                                <label htmlFor="goal-calories" className="block text-sm font-medium text-gray-200 mb-1">{t('calories')}</label>
                                 <input id="goal-calories" type="number" name="calories" value={editedGoals.calories} onChange={handleGoalChange} placeholder="2000" className="w-full bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             </div>
                             <div>
-                                <label htmlFor="goal-protein" className="block text-sm font-medium text-gray-200 mb-1">البروتين (جرام)</label>
+                                <label htmlFor="goal-protein" className="block text-sm font-medium text-gray-200 mb-1">{t('protein')}</label>
                                 <input id="goal-protein" type="number" name="protein" value={editedGoals.protein} onChange={handleGoalChange} placeholder="150" className="w-full bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             </div>
                             <div>
-                                <label htmlFor="goal-carbs" className="block text-sm font-medium text-gray-200 mb-1">الكربوهيدرات (جرام)</label>
+                                <label htmlFor="goal-carbs" className="block text-sm font-medium text-gray-200 mb-1">{t('carbs')}</label>
                                 <input id="goal-carbs" type="number" name="carbs" value={editedGoals.carbs} onChange={handleGoalChange} placeholder="200" className="w-full bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             </div>
                             <div>
-                                <label htmlFor="goal-fat" className="block text-sm font-medium text-gray-200 mb-1">الدهون (جرام)</label>
+                                <label htmlFor="goal-fat" className="block text-sm font-medium text-gray-200 mb-1">{t('fat')}</label>
                                 <input id="goal-fat" type="number" name="fat" value={editedGoals.fat} onChange={handleGoalChange} placeholder="65" className="w-full bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             </div>
                         </div>
-                        <button onClick={() => setNutritionGoals(editedGoals)} className="w-full sm:w-auto flex-shrink-0 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg h-10">حفظ الأهداف</button>
+                        <button onClick={() => setNutritionGoals(editedGoals)} className="w-full sm:w-auto flex-shrink-0 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg h-10">{t('save_goals')}</button>
                     </div>
                 </div>
-                 {/* Food Database */}
                 <div className="pt-8 mt-8 border-t border-gray-700">
-                    <h3 className="text-xl font-bold text-gray-200 mb-2">قاعدة بيانات الأطعمة</h3>
+                    <h3 className="text-xl font-bold text-gray-200 mb-2">{t('food_db')}</h3>
                     <div className="relative">
                         <input 
                             type="text"
                             value={foodSearch}
                             onChange={e => {
                                 setFoodSearch(e.target.value);
-                                setSelectedFoodItem(null); // Clear selection on new search
+                                setSelectedFoodItem(null);
                             }}
-                            placeholder="ابحث عن طعام..."
+                            placeholder={t('search_food')}
                             className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         {foodSearch && (
                              <div className="absolute z-10 w-full mt-1 bg-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                                 {filteredFoodDatabase.length > 0 ? (
                                     filteredFoodDatabase.map(item => (
-                                        <button key={item.id} onClick={() => { setSelectedFoodItem(item); setFoodSearch(''); }} className="block w-full text-right px-4 py-3 hover:bg-gray-500 transition-colors">
+                                        <button key={item.id} onClick={() => { setSelectedFoodItem(item); setFoodSearch(''); }} className={`block w-full ${dir === 'rtl' ? 'text-right' : 'text-left'} px-4 py-3 hover:bg-gray-500 transition-colors`}>
                                             {item.name}
                                         </button>
                                     ))
                                 ) : (
-                                    <div className="px-4 py-3 text-gray-400">لا توجد نتائج</div>
+                                    <div className="px-4 py-3 text-gray-400">{t('no_results')}</div>
                                 )}
                             </div>
                         )}
@@ -504,7 +485,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
                                 <div>
                                     <p className="font-semibold text-xl text-white">{selectedFoodItem.name} <span className="text-base text-gray-400">({selectedFoodItem.servingSize})</span></p>
                                     <p className="text-base text-gray-300">
-                                        <span className="text-yellow-400">{selectedFoodItem.calories} سعرة</span> • <span className="text-sky-400">{selectedFoodItem.protein} بروتين</span> • <span className="text-orange-400">{selectedFoodItem.carbs} كربوهيدرات</span> • <span className="text-amber-400">{selectedFoodItem.fat} دهون</span>
+                                        <span className="text-yellow-400">{selectedFoodItem.calories} {t('calories')}</span> • <span className="text-sky-400">{selectedFoodItem.protein} {t('protein')}</span> • <span className="text-orange-400">{selectedFoodItem.carbs} {t('carbs')}</span> • <span className="text-amber-400">{selectedFoodItem.fat} {t('fat')}</span>
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -520,34 +501,33 @@ export const SettingsPage: React.FC<SettingsPageProps> = (props) => {
                     )}
                     
                     <button onClick={() => setManagingFoodItem('new')} className="w-full mt-4 flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-lg font-bold">
-                        <BookOpenIcon className="w-5 h-5" /> إضافة عنصر جديد
+                        <BookOpenIcon className="w-5 h-5" /> {t('add_new_item')}
                     </button>
                 </div>
             </section>
             
-            {/* DATA MANAGEMENT */}
             <section className="pt-8 border-t border-gray-700">
-                <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent mb-6">💾 إدارة البيانات</h2>
+                <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent mb-6">{t('settings_data')}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button onClick={handleExport} className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-lg">
-                        <ExportIcon className="w-5 h-5"/> <span>تصدير كل البيانات</span>
+                        <ExportIcon className="w-5 h-5"/> <span>{t('export_all')}</span>
                     </button>
                     <button onClick={() => fileInputRef.current?.click()} className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg">
-                        <ImportIcon className="w-5 h-5"/> <span>استيراد كل البيانات</span>
+                        <ImportIcon className="w-5 h-5"/> <span>{t('import_all')}</span>
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept=".json" className="hidden" />
                 </div>
             </section>
 
 
-            {/* All Modals */}
             {managingPart && (<ManagePartModal part={managingPart} exercisesForPart={exercises[managingPart.id] || []} onClose={() => setManagingPart(null)} onUpdatePartName={(newName) => handleUpdatePartName(managingPart.id, newName)} onUpdateExercise={(index, updatedEx) => handleExerciseUpdate(managingPart.id, index, updatedEx)} onAddExercise={(newEx) => handleExerciseAdd(managingPart.id, newEx)} onDeleteExercise={(index) => handleExerciseDelete(managingPart.id, index)}/>)}
             {managingRoutine && (<ManageRoutineModal isOpen={!!managingRoutine} onClose={() => setManagingRoutine(null)} routineToEdit={managingRoutine === 'new' ? undefined : managingRoutine} bodyParts={bodyParts} exercises={exercises} onSave={(routineData) => { if (managingRoutine === 'new') { addRoutine(routineData); } else if (managingRoutine.id) { updateRoutine({ ...routineData, id: managingRoutine.id }); } setManagingRoutine(null); }}/>)}
             {managingFoodItem && (<ManageFoodItemModal isOpen={!!managingFoodItem} onClose={() => setManagingFoodItem(null)} itemToEdit={managingFoodItem === 'new' ? undefined : managingFoodItem} onSave={handleSaveFoodItem} />)}
-            <Modal isOpen={!!partToDelete} onClose={() => setPartToDelete(null)} onConfirm={confirmDeletePart} title="تأكيد حذف الجزء"><p>هل أنت متأكد من حذف جزء "{partToDelete?.name}" وكل تمارينه؟</p></Modal>
-            <Modal isOpen={!!routineToDelete} onClose={() => setRoutineToDelete(null)} onConfirm={confirmDeleteRoutine} title="تأكيد حذف الخطة"><p>هل أنت متأكد من حذف خطة "{routineToDelete?.name}"؟</p></Modal>
-            <Modal isOpen={!!foodItemToDelete} onClose={() => setFoodItemToDelete(null)} onConfirm={confirmDeleteFoodItem} title="تأكيد حذف الطعام"><p>هل أنت متأكد من حذف "{foodItemToDelete?.name}" من قاعدة البيانات؟</p></Modal>
-            <Modal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} onConfirm={confirmImport} title="تأكيد استيراد البيانات" confirmText="نعم، استبدل الكل"><p>سيؤدي هذا إلى استبدال جميع بياناتك الحالية. هل تريد المتابعة؟</p></Modal>
+            
+            <Modal isOpen={!!partToDelete} onClose={() => setPartToDelete(null)} onConfirm={confirmDeletePart} title={t('confirm_delete_part')} confirmText={t('delete')} cancelText={t('cancel')}><p>{t('confirm_delete_part_msg', {name: partToDelete?.name || ''})}</p></Modal>
+            <Modal isOpen={!!routineToDelete} onClose={() => setRoutineToDelete(null)} onConfirm={confirmDeleteRoutine} title={t('confirm_delete_plan')} confirmText={t('delete')} cancelText={t('cancel')}><p>{t('confirm_delete_plan_msg', {name: routineToDelete?.name || ''})}</p></Modal>
+            <Modal isOpen={!!foodItemToDelete} onClose={() => setFoodItemToDelete(null)} onConfirm={confirmDeleteFoodItem} title={t('confirm_delete_food')} confirmText={t('delete')} cancelText={t('cancel')}><p>{t('confirm_delete_food_msg', {name: foodItemToDelete?.name || ''})}</p></Modal>
+            <Modal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} onConfirm={confirmImport} title={t('confirm_import')} confirmText={t('import_yes')} cancelText={t('cancel')}><p>{t('confirm_import_msg')}</p></Modal>
         </div>
     );
 };

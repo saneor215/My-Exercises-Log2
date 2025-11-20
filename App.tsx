@@ -11,11 +11,13 @@ import { DietPage } from './components/DietPage';
 import { SettingsPage } from './components/SettingsPage';
 import { ProgressPage } from './components/ProgressPage';
 import { Modal } from './components/Modal';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
 type View = 'log' | 'calendar' | 'progress' | 'diet' | 'settings';
 
+function AppContent() {
+  const { t } = useLanguage();
 
-export default function App(): React.ReactElement {
   // Workout State
   const [log, setLog] = useLocalStorage<WorkoutEntry[]>('workoutLog_categorized_react_v2', []);
   const [bodyParts, setBodyParts] = useLocalStorage<BodyPart[]>('workout_bodyParts_v2', INITIAL_BODY_PARTS);
@@ -117,27 +119,19 @@ export default function App(): React.ReactElement {
     const newLoggedFood: LoggedFood = { id: crypto.randomUUID(), foodId, servings };
     
     setDailyDietLogs(prev => {
-        // If this day doesn't exist yet, create it by copying the template (dietPlan)
-        // This ensures we don't lose the "default" foods for that day when we add a specific new one.
         const currentDayLog = prev[date] !== undefined ? { ...prev[date] } : JSON.parse(JSON.stringify(dietPlan));
-        
         const mealLog = currentDayLog[meal] ? [...currentDayLog[meal]!] : [];
         mealLog.push(newLoggedFood);
         currentDayLog[meal] = mealLog;
-        
         return { ...prev, [date]: currentDayLog };
     });
   }, [setDailyDietLogs, dietPlan]);
 
-  // Enhanced removeLoggedFood to assume template if day is missing
   const removeLoggedFood = useCallback((date: string, meal: MealType, loggedFoodId: string) => {
     setDailyDietLogs(prev => {
         const currentDayLog = prev[date] !== undefined ? { ...prev[date] } : JSON.parse(JSON.stringify(dietPlan));
-        
-        if (!currentDayLog[meal]) return prev; // Should not happen if logic is correct
-        
+        if (!currentDayLog[meal]) return prev;
         currentDayLog[meal] = currentDayLog[meal]!.filter(food => food.id !== loggedFoodId);
-        
         return { ...prev, [date]: currentDayLog };
     });
   }, [setDailyDietLogs, dietPlan]);
@@ -146,7 +140,6 @@ export default function App(): React.ReactElement {
   // --- DATA MANAGEMENT (IMPORT/EXPORT) ---
   const importData = useCallback((data: AppData) => {
     try {
-        // Basic validation
         if (!data || typeof data !== 'object') throw new Error("Invalid data file.");
         if (!Array.isArray(data.log)) throw new Error("Invalid log data.");
 
@@ -161,12 +154,10 @@ export default function App(): React.ReactElement {
         setDietPlan(data.dietPlan || INITIAL_DIET_PLAN);
 
         setShowIntro((data.log || []).length === 0);
-        
-        // Use Modal instead of alert for reliable feedback
         setImportSuccess(true);
     } catch (error) {
         console.error("Import failed:", error);
-        alert(`فشل الاستيراد: ${error instanceof Error ? error.message : "خطأ غير معروف"}`);
+        alert(`Import failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }, [setLog, setBodyParts, setExercises, setRoutines, setWeeklySchedule, setNutritionGoals, setFoodDatabase, setDailyDietLogs, setDietPlan]);
 
@@ -276,16 +267,23 @@ export default function App(): React.ReactElement {
         isOpen={importSuccess}
         onClose={() => setImportSuccess(false)}
         onConfirm={() => setImportSuccess(false)}
-        title="تم بنجاح"
-        confirmText="موافق"
+        title={t('import_success_title')}
+        confirmText={t('ok')}
         cancelText={null}
         confirmButtonClass="bg-emerald-600 hover:bg-emerald-500 focus:ring-emerald-400 text-white"
       >
         <div className="text-center">
-            <p className="text-lg font-medium text-green-400 mb-2">✅ تم استعادة النسخة الاحتياطية!</p>
-            <p className="text-gray-300">تم تحديث جميع التمارين، الأطعمة، والإعدادات بنجاح.</p>
+            <p className="text-lg font-medium text-green-400 mb-2">✅ {t('import_success_msg')}</p>
         </div>
       </Modal>
     </div>
   );
+}
+
+export default function App(): React.ReactElement {
+    return (
+        <LanguageProvider>
+            <AppContent />
+        </LanguageProvider>
+    )
 }
