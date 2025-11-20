@@ -10,6 +10,7 @@ import { CalendarPage } from './components/CalendarPage';
 import { DietPage } from './components/DietPage';
 import { SettingsPage } from './components/SettingsPage';
 import { ProgressPage } from './components/ProgressPage';
+import { Modal } from './components/Modal';
 
 type View = 'log' | 'calendar' | 'progress' | 'diet' | 'settings';
 
@@ -31,6 +32,7 @@ export default function App(): React.ReactElement {
   // UI State
   const [showIntro, setShowIntro] = useState(log.length === 0);
   const [activeView, setActiveView] = useState<View>('log');
+  const [importSuccess, setImportSuccess] = useState(false);
 
   // --- WORKOUT HANDLERS ---
   const addEntry = useCallback((entry: Omit<WorkoutEntry, 'id' | 'date' | 'image'>) => {
@@ -159,7 +161,9 @@ export default function App(): React.ReactElement {
         setDietPlan(data.dietPlan || INITIAL_DIET_PLAN);
 
         setShowIntro((data.log || []).length === 0);
-        alert('تم استيراد البيانات بنجاح!');
+        
+        // Use Modal instead of alert for reliable feedback
+        setImportSuccess(true);
     } catch (error) {
         console.error("Import failed:", error);
         alert(`فشل الاستيراد: ${error instanceof Error ? error.message : "خطأ غير معروف"}`);
@@ -267,6 +271,21 @@ export default function App(): React.ReactElement {
            )}
         </div>
       </div>
+      
+      <Modal
+        isOpen={importSuccess}
+        onClose={() => setImportSuccess(false)}
+        onConfirm={() => setImportSuccess(false)}
+        title="تم بنجاح"
+        confirmText="موافق"
+        cancelText={null}
+        confirmButtonClass="bg-emerald-600 hover:bg-emerald-500 focus:ring-emerald-400 text-white"
+      >
+        <div className="text-center">
+            <p className="text-lg font-medium text-green-400 mb-2">✅ تم استعادة النسخة الاحتياطية!</p>
+            <p className="text-gray-300">تم تحديث جميع التمارين، الأطعمة، والإعدادات بنجاح.</p>
+        </div>
+      </Modal>
     </div>
   );
 }
