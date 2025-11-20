@@ -79,6 +79,12 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, onDeleteEntry, onUp
       return filteredGlobalLog.filter(entry => getDateStr(entry.date) === viewDate);
   }, [filteredGlobalLog, viewDate]);
 
+  // 4. Get distinct body parts for the current day (for the visual header)
+  const uniqueDayParts = useMemo(() => {
+      const partIds = new Set(dailyLogs.map(e => e.part));
+      return bodyParts.filter(p => partIds.has(p.id));
+  }, [dailyLogs, bodyParts]);
+
   // Effect: When filter changes, if current viewDate becomes invalid (empty), jump to the newest valid date
   // EXCEPT if today is selected, we want to stay on today even if empty.
   useEffect(() => {
@@ -139,10 +145,9 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, onDeleteEntry, onUp
       if (dailyLogs.length === 0) return null;
       const totalSets = dailyLogs.length;
       const totalVolume = dailyLogs.reduce((sum, e) => sum + (e.weight * e.reps), 0);
-      const parts = [...new Set(dailyLogs.map(e => bodyParts.find(p => p.id === e.part)?.name || '?'))];
       const weekNum = dailyLogs[0].week;
-      return { totalSets, totalVolume, parts, weekNum };
-  }, [dailyLogs, bodyParts]);
+      return { totalSets, totalVolume, weekNum };
+  }, [dailyLogs]);
 
 
   const handleUpdate = (updatedEntry: WorkoutEntry) => {
@@ -305,6 +310,19 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, onDeleteEntry, onUp
       {/* Content Area */}
       {dailyLogs.length > 0 ? (
           <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-4">
+              
+              {/* Body Part Focus Banner (NEW) */}
+              {uniqueDayParts.length > 0 && (
+                  <div className="flex justify-center gap-3 mb-2 flex-wrap animate-fade-in">
+                      {uniqueDayParts.map(part => (
+                          <div key={part.id} className={`flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r ${part.gradient} text-white shadow-lg transform hover:scale-105 transition-transform cursor-default`}>
+                              <span className="text-2xl">{part.icon}</span>
+                              <span className="font-bold text-lg">{part.name}</span>
+                          </div>
+                      ))}
+                  </div>
+              )}
+
               {/* Day Stats */}
               {daySummary && (
                   <div className="grid grid-cols-3 gap-2 mb-4 text-center">
