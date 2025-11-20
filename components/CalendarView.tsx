@@ -132,7 +132,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
-  const weekdays = ['س', 'ج', 'خ', 'ر', 'ث', 'ن', 'ح'];
+  const weekdays = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
 
   return (
     <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg ring-1 ring-white/10">
@@ -154,8 +154,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
         </button>
       </div>
       
-      <div className="grid grid-cols-7 gap-1 text-center text-sm">
-        {weekdays.map(day => <div key={day} className="font-semibold text-gray-400 p-2 mb-2">{day}</div>)}
+      <div className="grid grid-cols-7 gap-1 text-center text-xs sm:text-sm">
+        {weekdays.map(day => <div key={day} className="font-bold text-gray-400 p-2 mb-2 truncate">{day}</div>)}
         {calendarDays.map((day, index) => {
           const year = day.getFullYear();
           const month = String(day.getMonth() + 1).padStart(2, '0');
