@@ -41,6 +41,37 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+// Image compression helper
+const compressImage = (base64: string): Promise<string> => {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = base64;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 500; // Sufficient for thumbnails
+            let width = img.width;
+            let height = img.height;
+
+            if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.drawImage(img, 0, 0, width, height);
+                // Convert to JPEG with 70% quality to save significant space
+                resolve(canvas.toDataURL('image/jpeg', 0.7));
+            } else {
+                resolve(base64);
+            }
+        };
+        img.onerror = () => resolve(base64);
+    });
+};
+
 // Other modals remain largely the same, but let's re-include ManagePartModal for completeness
 const COLOR_SCHEMES = [
     { color: 'rose', gradient: 'from-rose-500 to-pink-500' },
@@ -65,15 +96,20 @@ const ManagePartModal: React.FC<{
     const [newExerciseImage, setNewExerciseImage] = useState<string | null>(null);
     const newExerciseFileRef = useRef<HTMLInputElement>(null);
     const [exerciseToDelete, setExerciseToDelete] = useState<number | null>(null);
+    const [isProcessingImage, setIsProcessingImage] = useState(false);
 
     const handleImageUpload = async (file: File, callback: (base64: string) => void) => {
         if (file && file.type.startsWith('image/')) {
+            setIsProcessingImage(true);
             try {
-                const base64 = await fileToBase64(file);
-                callback(base64);
+                const rawBase64 = await fileToBase64(file);
+                const compressedBase64 = await compressImage(rawBase64);
+                callback(compressedBase64);
             } catch (error) {
-                console.error("Error converting file to base64:", error);
+                console.error("Error converting file:", error);
                 alert("فشل رفع الصورة.");
+            } finally {
+                setIsProcessingImage(false);
             }
         }
     };
@@ -127,9 +163,15 @@ const ManagePartModal: React.FC<{
                                 <input type="text" value={exercise.name} onChange={e => {
                                     onUpdateExercise(index, {...exercise, name: e.target.value});
                                 }} className="w-full bg-gray-600 text-white px-3 py-1.5 rounded-md"/>
-                                <input type="file" accept="image/*" onChange={e => e.target.files && handleImageUpload(e.target.files[0], base64 => {
-                                     onUpdateExercise(index, {...exercise, image: base64});
-                                })} className="w-full text-sm text-gray-400 file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500/20 file:text-blue-300 hover:file:bg-blue-500/30"/>
+                                <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    disabled={isProcessingImage}
+                                    onChange={e => e.target.files && handleImageUpload(e.target.files[0], base64 => {
+                                        onUpdateExercise(index, {...exercise, image: base64});
+                                    })} 
+                                    className="w-full text-sm text-gray-400 file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500/20 file:text-blue-300 hover:file:bg-blue-500/30 disabled:opacity-50"
+                                />
                             </div>
                             <button onClick={() => setExerciseToDelete(index)} className="p-2 rounded-full hover:bg-red-500/20 text-red-400"><TrashIcon className="w-5 h-5"/></button>
                         </div>
@@ -141,10 +183,19 @@ const ManagePartModal: React.FC<{
                      <div className="flex items-start gap-4">
                         <div className="flex-grow space-y-2">
                            <input type="text" value={newExerciseName} onChange={e => setNewExerciseName(e.target.value)} placeholder="اسم التمرين الجديد" className="w-full bg-gray-700 text-white px-3 py-2 rounded-md"/>
-                           <input ref={newExerciseFileRef} type="file" accept="image/*" onChange={e => e.target.files && handleImageUpload(e.target.files[0], base64 => setNewExerciseImage(base64))} className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500"/>
+                           <input 
+                                ref={newExerciseFileRef} 
+                                type="file" 
+                                accept="image/*" 
+                                disabled={isProcessingImage}
+                                onChange={e => e.target.files && handleImageUpload(e.target.files[0], base64 => setNewExerciseImage(base64))} 
+                                className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 disabled:opacity-50"
+                           />
                         </div>
                         {newExerciseImage && <img src={newExerciseImage} alt="Preview" className="w-16 h-16 rounded-md object-cover"/>}
-                        <button onClick={handleAddNewExercise} className="self-center bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg h-full">إضافة</button>
+                        <button onClick={handleAddNewExercise} disabled={isProcessingImage} className="self-center bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg h-full disabled:bg-gray-600">
+                            {isProcessingImage ? 'جاري الرفع...' : 'إضافة'}
+                        </button>
                      </div>
                 </div>
 

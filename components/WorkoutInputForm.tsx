@@ -44,30 +44,24 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
   const [timeLeft, setTimeLeft] = useState(REST_DURATION);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   
-  // Check for today's schedule
   const todayScheduledRoutine = useMemo(() => {
       if (!weeklySchedule || !routines) return null;
-      const dayIndex = new Date().getDay().toString(); // 0-6
+      const dayIndex = new Date().getDay().toString();
       const routineId = weeklySchedule[dayIndex];
       if (!routineId) return null;
       return routines.find(r => r.id === routineId) || null;
   }, [weeklySchedule, routines]);
 
-  // Check if the scheduled routine has already been logged today
   const isTodayLogged = useMemo(() => {
       if (!todayScheduledRoutine) return false;
       
       const today = new Date();
       const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-      // Check if ANY exercise from the routine exists in the log for today
-      // This prevents the button from being active if the user already did the workout
       return log.some(entry => {
           const entryDate = new Date(entry.date);
           const entryDateStr = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}-${String(entryDate.getDate()).padStart(2, '0')}`;
-          
-          return entryDateStr === todayStr && 
-                 todayScheduledRoutine.exercises.some(re => re.exerciseName === entry.exercise);
+          return entryDateStr === todayStr && todayScheduledRoutine.exercises.some(re => re.exerciseName === entry.exercise);
       });
   }, [log, todayScheduledRoutine]);
 
@@ -90,7 +84,6 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
     if (timeLeft <= 0) {
         setIsTimerRunning(false);
         setTimeLeft(REST_DURATION);
-        // You could add an audio alert here
         return;
     }
 
@@ -160,7 +153,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
   }
 
   return (
-    <div className="bg-gray-800 p-6 rounded-2xl shadow-lg ring-1 ring-white/10">
+    <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg ring-1 ring-white/10">
       
        <button
           type="button"
@@ -182,19 +175,19 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
              ? 'bg-green-900/20 border-green-500/30' 
              : 'bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-blue-500/30'
          }`}>
-             <div className="flex items-center justify-between mb-3">
-                 <div className="flex items-center gap-3">
-                    <CalendarIcon className={`w-6 h-6 ${isTodayLogged ? 'text-green-400' : 'text-blue-400'}`} />
+             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                 <div className="flex items-start gap-3">
+                    <CalendarIcon className={`w-6 h-6 mt-1 flex-shrink-0 ${isTodayLogged ? 'text-green-400' : 'text-blue-400'}`} />
                     <div>
-                        <p className={`text-xs font-bold ${isTodayLogged ? 'text-green-300' : 'text-blue-300'}`}>
-                            {isTodayLogged ? 'تم إنجاز جدول اليوم' : 'جدول اليوم'}
+                        <p className={`text-xs font-bold uppercase tracking-wider ${isTodayLogged ? 'text-green-300' : 'text-blue-300'}`}>
+                            {isTodayLogged ? 'تم الإنجاز' : 'جدول اليوم'}
                         </p>
-                        <h3 className="text-lg font-bold text-white">{todayScheduledRoutine.name}</h3>
+                        <h3 className="text-lg sm:text-xl font-bold text-white leading-tight">{todayScheduledRoutine.name}</h3>
                     </div>
                  </div>
                  {isTodayLogged && (
-                     <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-fade-in">
-                         تم التسجيل ✅
+                     <span className="self-start sm:self-center bg-green-500/20 text-green-300 border border-green-500/30 text-xs font-bold px-3 py-1 rounded-full animate-fade-in whitespace-nowrap">
+                         ✅ تم التسجيل
                      </span>
                  )}
              </div>
@@ -202,10 +195,10 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
              <button 
                 onClick={handleQuickLogSchedule}
                 disabled={isTodayLogged}
-                className={`w-full text-sm font-bold py-2 px-3 rounded-lg transition-colors shadow-md flex items-center justify-center gap-2 ${
+                className={`w-full text-sm sm:text-base font-bold py-3 px-4 rounded-lg transition-all shadow-md flex items-center justify-center gap-2 ${
                     isTodayLogged 
-                    ? 'bg-green-600/20 text-green-400 cursor-not-allowed border border-green-500/20' 
-                    : 'bg-blue-600 hover:bg-blue-500 text-white'
+                    ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-500 text-white hover:shadow-blue-500/20 hover:shadow-lg'
                 }`}
              >
                  {isTodayLogged ? 'تم تسجيل تمارين اليوم' : 'تسجيل تمارين اليوم سريعاً'}
@@ -228,33 +221,34 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
             <div className="w-full border-t border-gray-700"></div>
         </div>
         <div className="relative flex justify-center">
-            <span className="bg-gray-800 px-2 text-sm text-gray-500">أو تسجيل تمرين فردي</span>
+            <span className="bg-gray-800 px-3 text-sm text-gray-500">أو تسجيل تمرين فردي</span>
         </div>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-lg font-medium text-gray-300 mb-3">اختر الجزء:</label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {bodyParts.map((part) => (
               <button
                 type="button"
                 key={part.id}
                 onClick={() => setSelectedPart(part.id)}
-                className={`p-4 rounded-xl text-center font-semibold transition-all duration-300 focus:outline-none focus:ring-4 ${
+                className={`p-3 sm:p-4 rounded-xl text-center font-semibold text-sm sm:text-base transition-all duration-300 focus:outline-none focus:ring-4 ${
                   selectedPart === part.id
                     ? `bg-gradient-to-br ${part.gradient} text-white shadow-lg scale-105 ring-4 ring-offset-2 ring-offset-gray-800 ring-${part.color}-500`
                     : `bg-gray-700 hover:bg-gray-600 text-gray-300 ring-1 ring-gray-600`
                 }`}
               >
-                {part.icon} {part.name}
+                <span className="block text-xl mb-1">{part.icon}</span>
+                {part.name}
               </button>
             ))}
           </div>
         </div>
 
         {selectedPart && (
-            <>
+            <div className="animate-fade-in space-y-4">
                 <div>
                     <label htmlFor="exercise-select" className="block text-sm font-medium text-gray-300 mb-2">التمرين</label>
                     <CustomSelect id="exercise-select" value={selectedExercise} onChange={(e) => setSelectedExercise(e.target.value)} disabled={!exercises[selectedPart] || exercises[selectedPart].length === 0}>
@@ -269,9 +263,9 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                 </div>
 
                 {exerciseImage && (
-                    <div className="flex justify-center my-4 opacity-0 animate-fade-in">
-                        <div className="w-full max-w-[150px] aspect-square">
-                            <img src={exerciseImage} alt={selectedExercise} className="w-full h-full rounded-2xl object-cover bg-gray-700 shadow-lg" />
+                    <div className="flex justify-center my-4">
+                        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden shadow-lg ring-2 ring-gray-600">
+                            <img src={exerciseImage} alt={selectedExercise} className="w-full h-full object-cover" />
                         </div>
                     </div>
                 )}
@@ -283,12 +277,12 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                         value={comment}
                         onChange={e => setComment(e.target.value)}
                         rows={2}
-                        placeholder='مثال: الوزن كان جيداً، التركيز على الأداء...'
+                        placeholder='مثال: الوزن كان جيداً...'
                         className="w-full bg-gray-700 border-gray-600 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
                     />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <div>
                         <label htmlFor="weight-input" className="block text-sm font-medium text-gray-300 mb-2">الوزن (كجم)</label>
                         <input
@@ -299,8 +293,8 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                             min="0"
                             value={weight}
                             onChange={(e) => setWeight(e.target.value)}
-                            placeholder="مثال: 20.5"
-                            className="w-full bg-gray-700 border-gray-600 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                            placeholder="0"
+                            className="w-full bg-gray-700 border-gray-600 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-center font-bold text-lg"
                             required
                         />
                     </div>
@@ -314,8 +308,8 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                             min="1"
                             value={reps}
                             onChange={(e) => setReps(e.target.value)}
-                            placeholder="مثال: 10"
-                            className="w-full bg-gray-700 border-gray-600 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                            placeholder="0"
+                            className="w-full bg-gray-700 border-gray-600 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-center font-bold text-lg"
                             required
                         />
                     </div>
@@ -331,7 +325,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                         value={week}
                         onChange={(e) => setWeek(e.target.value)}
                         placeholder="مثال: 4"
-                        className="w-full bg-gray-700 border-gray-600 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                        className="w-full bg-gray-700 border-gray-600 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-center font-bold"
                         required
                     />
                 </div>
@@ -346,7 +340,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
                         <span>حفظ التمرين</span>
                     </button>
                 </div>
-            </>
+            </div>
         )}
       </form>
 
@@ -366,7 +360,6 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
   );
 };
 
-// Add keyframes for animation
 const style = document.createElement('style');
 style.innerHTML = `
 @keyframes fade-in {

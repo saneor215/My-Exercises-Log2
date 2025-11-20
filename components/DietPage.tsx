@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import type { NutritionGoals, FoodItem, DailyDietLog, MealType, LoggedFood, MicronutrientInfo, DietPlan } from '../types';
-import { ChevronLeftIcon, ChevronRightIcon, PlusCircleIcon, TrashIcon, XIcon, SaveIcon, BookOpenIcon } from './Icons';
+import { ChevronLeftIcon, ChevronRightIcon, PlusCircleIcon, TrashIcon, SaveIcon, BookOpenIcon } from './Icons';
 import { ManageFoodItemModal } from './ManageFoodItemModal';
 import { MICRONUTRIENTS_LIST } from '../constants';
 
@@ -20,8 +20,8 @@ const TotalsSummary: React.FC<{ totals: Record<string, number>, goals: Nutrition
     const caloriePercent = goals.calories > 0 ? (totals.calories / goals.calories) * 100 : 0;
 
     return (
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg ring-1 ring-white/10">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-sky-400 to-blue-400 bg-clip-text text-transparent mb-6">ملخص اليوم</h2>
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg ring-1 ring-white/10">
+            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-sky-400 to-blue-400 bg-clip-text text-transparent mb-6">ملخص اليوم</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col items-center justify-center">
                     <div className="relative w-32 h-32">
@@ -78,7 +78,6 @@ const AddFoodModal: React.FC<{
 
     useEffect(() => {
         if (!isOpen) {
-            // Delay reset to avoid UI flicker while modal closes
             setTimeout(() => {
                 setSearchQuery('');
                 setSelectedFoodId(null);
@@ -93,7 +92,7 @@ const AddFoodModal: React.FC<{
         return foodDatabase.filter(food =>
             food.name.toLowerCase().includes(searchLower) ||
             food.keywords?.some(k => k.toLowerCase().includes(searchLower))
-        ).slice(0, 7); // Limit results for performance
+        ).slice(0, 7);
     }, [searchQuery, foodDatabase]);
     
     const selectedFood = useMemo(() => {
@@ -115,12 +114,12 @@ const AddFoodModal: React.FC<{
 
     const handleSelectFood = (food: FoodItem) => {
         setSelectedFoodId(food.id);
-        setSearchQuery(food.name); // Populate input for clarity
+        setSearchQuery(food.name);
     };
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center p-4" onClick={onClose}>
-            <div className="bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6 ring-1 ring-white/10" onClick={e => e.stopPropagation()}>
+            <div className="bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6 ring-1 ring-white/10 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <h2 className="text-xl font-bold text-white mb-4">إضافة طعام</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -132,7 +131,7 @@ const AddFoodModal: React.FC<{
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                                 placeholder="مثال: صدر دجاج"
-                                className="w-full bg-gray-700 text-white p-2 rounded-lg"
+                                className="w-full bg-gray-700 text-white p-3 rounded-lg"
                                 autoComplete="off"
                             />
                             {searchResults.length > 0 && searchQuery !== selectedFood?.name && (
@@ -154,7 +153,7 @@ const AddFoodModal: React.FC<{
                     </div>
                     <div>
                         <label htmlFor="food-servings" className="block text-sm text-gray-400 mb-1">الكمية ({selectedFood?.servingSize || 'حصص'})</label>
-                        <input id="food-servings" type="number" step="0.1" min="0.1" value={servings} onChange={e => setServings(e.target.value)} className="w-full bg-gray-700 text-white p-2 rounded-lg" disabled={!selectedFoodId} />
+                        <input id="food-servings" type="number" step="0.1" min="0.1" value={servings} onChange={e => setServings(e.target.value)} className="w-full bg-gray-700 text-white p-3 rounded-lg" disabled={!selectedFoodId} />
                     </div>
                     <div className="flex justify-end gap-2 pt-2">
                         <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-600 rounded-lg">إلغاء</button>
@@ -186,13 +185,7 @@ export const DietPage: React.FC<DietPageProps> = ({ goals, foodDatabase, dailyLo
     const [isEditingPlan, setIsEditingPlan] = useState(false);
 
     const selectedDateStr = toYMD(selectedDate);
-    
-    // Fallback logic: Use specific day log if it exists (even if empty, provided user touched it), otherwise use template.
-    // Checking `dailyLogs[selectedDateStr] !== undefined` allows distinguishing between "untouched day" and "day cleared by user".
-    // However, since our delete logic might keep the day object, this check is safe.
     const currentDayLog = dailyLogs[selectedDateStr] !== undefined ? dailyLogs[selectedDateStr] : dietPlan;
-
-    // If editing plan, we use the dietPlan directly. If viewing day, we use currentDayLog.
     const displayLog = isEditingPlan ? dietPlan : currentDayLog;
 
     const { totals, consumedMicronutrients } = useMemo(() => {
@@ -247,12 +240,10 @@ export const DietPage: React.FC<DietPageProps> = ({ goals, foodDatabase, dailyLo
         }
     };
 
-    // Handler for adding food based on mode
     const handleLogFood = (foodId: string, servings: number) => {
         if (!addingFoodTo) return;
         
         if (isEditingPlan) {
-            // Update the template directly
             const newLoggedFood: LoggedFood = { id: crypto.randomUUID(), foodId, servings };
             const updatedPlan = { ...dietPlan };
             const mealLog = updatedPlan[addingFoodTo] ? [...updatedPlan[addingFoodTo]!] : [];
@@ -260,12 +251,10 @@ export const DietPage: React.FC<DietPageProps> = ({ goals, foodDatabase, dailyLo
             updatedPlan[addingFoodTo] = mealLog;
             onUpdateDietPlan(updatedPlan);
         } else {
-            // Update daily log (handles fallback copy internally in App.tsx)
             onLogFood(selectedDateStr, addingFoodTo, foodId, servings);
         }
     };
 
-    // Handler for removing food based on mode
     const handleRemoveFood = (meal: MealType, loggedFoodId: string) => {
         if (isEditingPlan) {
             const updatedPlan = { ...dietPlan };
@@ -279,25 +268,24 @@ export const DietPage: React.FC<DietPageProps> = ({ goals, foodDatabase, dailyLo
     };
 
     return (
-        <div className="space-y-8">
-             <div className="flex justify-between items-center bg-gray-800 p-4 rounded-2xl shadow-md ring-1 ring-white/10">
+        <div className="space-y-6 sm:space-y-8">
+             {/* Responsive Header */}
+             <div className="bg-gray-800 p-4 rounded-2xl shadow-md ring-1 ring-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
                  {!isEditingPlan ? (
-                     <>
-                         <button onClick={() => changeDate(-1)} className="p-2 rounded-full hover:bg-gray-700"><ChevronLeftIcon /></button>
-                         <h2 className="text-xl font-bold text-white">{selectedDate.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', calendar: 'gregory' })}</h2>
-                         <button onClick={() => changeDate(1)} className="p-2 rounded-full hover:bg-gray-700"><ChevronRightIcon /></button>
-                     </>
+                     <div className="flex items-center justify-between w-full sm:w-auto gap-4 bg-gray-700/50 p-2 rounded-xl sm:bg-transparent sm:p-0">
+                         <button onClick={() => changeDate(-1)} className="p-2 rounded-full hover:bg-gray-700 bg-gray-600 sm:bg-transparent"><ChevronLeftIcon /></button>
+                         <h2 className="text-lg sm:text-xl font-bold text-white">{selectedDate.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', calendar: 'gregory' })}</h2>
+                         <button onClick={() => changeDate(1)} className="p-2 rounded-full hover:bg-gray-700 bg-gray-600 sm:bg-transparent"><ChevronRightIcon /></button>
+                     </div>
                  ) : (
                      <div className="flex items-center justify-center w-full">
-                         <h2 className="text-xl font-bold text-amber-400">تعديل الخطة الغذائية الثابتة</h2>
+                         <h2 className="text-xl font-bold text-amber-400 text-center">تعديل الخطة الغذائية الثابتة</h2>
                      </div>
                  )}
-             </div>
-             
-             <div className="flex justify-end">
-                <button 
+                 
+                 <button 
                     onClick={() => setIsEditingPlan(!isEditingPlan)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all shadow-md ${isEditingPlan ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-amber-600 hover:bg-amber-500 text-white'}`}
+                    className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 sm:py-2 rounded-lg font-bold transition-all shadow-md ${isEditingPlan ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-amber-600 hover:bg-amber-500 text-white'}`}
                 >
                     {isEditingPlan ? (
                         <>
@@ -314,17 +302,16 @@ export const DietPage: React.FC<DietPageProps> = ({ goals, foodDatabase, dailyLo
              </div>
 
              {isEditingPlan && (
-                 <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl text-amber-200 text-sm text-center">
-                     أنت الآن تقوم بتعديل الخطة الأساسية. أي تغييرات هنا ستظهر تلقائياً في جميع الأيام الجديدة أو الأيام التي لم تقم بتعديلها يدوياً.
+                 <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl text-amber-200 text-sm text-center">
+                     أنت الآن تقوم بتعديل الخطة الأساسية. أي تغييرات هنا ستظهر تلقائياً في الأيام القادمة.
                  </div>
              )}
              
              <TotalsSummary totals={totals} goals={goals} consumedMicronutrients={consumedMicronutrients} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {(Object.keys(mealTitles) as MealType[]).map(meal => (
                     <div key={meal} className="bg-gray-800 p-4 rounded-2xl ring-1 ring-white/10 relative overflow-hidden">
-                        {/* Visual indicator for using template in daily view */}
                         {!isEditingPlan && dailyLogs[selectedDateStr] === undefined && dietPlan[meal]?.length ? (
                             <div className="absolute top-0 left-0 bg-blue-600/20 text-blue-300 text-[10px] px-2 py-1 rounded-br-lg border-r border-b border-blue-600/20">
                                 من الخطة
@@ -337,17 +324,20 @@ export const DietPage: React.FC<DietPageProps> = ({ goals, foodDatabase, dailyLo
                                 const foodItem = foodDatabase.find(f => f.id === loggedFood.foodId);
                                 if (!foodItem) return null;
                                 return (
-                                    <div key={loggedFood.id} className="flex justify-between items-center bg-gray-700/50 p-2 rounded-lg text-sm">
+                                    <div key={loggedFood.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded-lg text-sm">
                                         <div>
                                             <p className="font-semibold text-white">{foodItem.name}</p>
-                                            <p className="text-gray-400">{loggedFood.servings} × {foodItem.servingSize} • {Math.round(foodItem.calories * loggedFood.servings)} سعرة</p>
+                                            <p className="text-gray-400 text-xs sm:text-sm mt-1">{loggedFood.servings} × {foodItem.servingSize} • {Math.round(foodItem.calories * loggedFood.servings)} سعرة</p>
                                         </div>
-                                        <button onClick={() => handleRemoveFood(meal, loggedFood.id)} className="p-1 text-red-400 hover:text-red-300"><TrashIcon className="w-4 h-4" /></button>
+                                        <button onClick={() => handleRemoveFood(meal, loggedFood.id)} className="p-2 text-red-400 hover:text-red-300 rounded-full hover:bg-gray-600"><TrashIcon className="w-5 h-5" /></button>
                                     </div>
                                 );
                             })}
+                            {(!displayLog[meal] || displayLog[meal]?.length === 0) && (
+                                <p className="text-gray-500 text-sm text-center py-2">لا توجد أطعمة مسجلة.</p>
+                            )}
                         </div>
-                        <button onClick={() => setAddingFoodTo(meal)} className="w-full flex items-center justify-center gap-2 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
+                        <button onClick={() => setAddingFoodTo(meal)} className="w-full flex items-center justify-center gap-2 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white font-medium">
                             <PlusCircleIcon className="w-5 h-5" /> أضف طعام
                         </button>
                     </div>
