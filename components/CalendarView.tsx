@@ -10,6 +10,27 @@ interface CalendarViewProps {
   bodyParts: BodyPart[];
 }
 
+// Hex codes for Tailwind colors used in the app to generate CSS gradients
+const COLOR_MAP: Record<string, string> = {
+    sky: '#0ea5e9',      // sky-500
+    emerald: '#10b981',  // emerald-500
+    orange: '#f97316',   // orange-500
+    rose: '#f43f5e',
+    fuchsia: '#d946ef',
+    indigo: '#6366f1',
+    teal: '#14b8a6',
+    amber: '#f59e0b',
+    blue: '#3b82f6',
+    green: '#22c55e',
+    red: '#ef4444',
+    yellow: '#eab308',
+    purple: '#a855f7',
+    pink: '#ec4899',
+    cyan: '#06b6d4',
+    lime: '#84cc16',
+    gray: '#6b7280',
+};
+
 const isSameDay = (d1: Date, d2: Date) => {
     return d1.getFullYear() === d2.getFullYear() &&
            d1.getMonth() === d2.getMonth() &&
@@ -20,14 +41,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
   const [displayDate, setDisplayDate] = useState(new Date());
   const today = new Date();
 
-  // Check if we are displaying the current month to hide the "Next" button
   const isCurrentMonth = displayDate.getMonth() === today.getMonth() && 
                          displayDate.getFullYear() === today.getFullYear();
 
-  // Map date string to the dominant body part color/info for that day
-  const workoutDaysInMonth = useMemo(() => {
-    const dayInfo = new Map<string, string>(); // Date -> Color Class
+  // Map date string to unique body part colors for that day
+  const dayStyles = useMemo(() => {
+    const styles = new Map<string, string[]>(); // Date -> Array of Hex Colors
     
+    // Helper to lookup part color
+    const getPartColor = (partId: string) => {
+        const part = bodyParts.find(p => p.id === partId);
+        const colorName = part ? part.color : 'blue';
+        return COLOR_MAP[colorName] || '#3b82f6';
+    };
+
     log.forEach(entry => {
         const entryDate = new Date(entry.date);
         if (entryDate.getFullYear() === displayDate.getFullYear() && entryDate.getMonth() === displayDate.getMonth()) {
@@ -36,19 +63,40 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
             const day = String(entryDate.getDate()).padStart(2, '0');
             const dateStr = `${year}-${month}-${day}`;
             
-            // If we haven't assigned a color to this day yet, find the body part color
-            // Logic: Prioritize assigning a color if exists. 
-            if (!dayInfo.has(dateStr)) {
-                const part = bodyParts.find(p => p.id === entry.part);
-                // Use the part's color or default to blue if not found
-                const colorClass = part ? `bg-${part.color}-500` : 'bg-blue-500';
-                dayInfo.set(dateStr, colorClass);
+            const color = getPartColor(entry.part);
+            
+            if (!styles.has(dateStr)) {
+                styles.set(dateStr, [color]);
+            } else {
+                const currentColors = styles.get(dateStr)!;
+                if (!currentColors.includes(color)) {
+                    currentColors.push(color);
+                }
             }
         }
     });
-    return dayInfo;
+    return styles;
   }, [log, displayDate, bodyParts]);
   
+  const getBackgroundStyle = (colors: string[] | undefined) => {
+    if (!colors || colors.length === 0) return undefined;
+    if (colors.length === 1) return { backgroundColor: colors[0] };
+
+    // Create a hard-stop linear gradient for split effect
+    const step = 100 / colors.length;
+    let gradient = 'linear-gradient(135deg';
+    
+    colors.forEach((color, index) => {
+        const start = index * step;
+        const end = (index + 1) * step;
+        // Syntax: color start%, color end% creates a solid block
+        gradient += `, ${color} ${start}% ${end}%`;
+    });
+    
+    gradient += ')';
+    return { background: gradient };
+  };
+
   const handlePrevMonth = () => {
     setDisplayDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
   };
@@ -89,7 +137,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
   return (
     <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg ring-1 ring-white/10">
       <div className="flex items-center justify-between mb-6">
-        {/* Next Month Button (Hidden if current month) */}
         <button 
             onClick={handleNextMonth} 
             disabled={isCurrentMonth}
@@ -117,23 +164,25 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
 
           const isCurrentMonthDay = day.getMonth() === displayDate.getMonth();
           const isSelected = selectedDate ? isSameDay(day, new Date(selectedDate + 'T00:00:00')) : false;
-          const colorClass = workoutDaysInMonth.get(dayStr);
+          
+          const colors = dayStyles.get(dayStr);
+          const style = getBackgroundStyle(colors);
 
-          const baseClasses = "w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 text-base relative z-10 group";
+          const baseClasses = "w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 text-base relative z-10 group border-2";
           let dayClasses = "";
           
           if (isSelected) {
             // Selected day: White background with distinct ring/text
-            dayClasses = "bg-white text-gray-900 font-bold scale-110 shadow-lg ring-4 ring-blue-500";
-          } else if (colorClass) {
-            // Workout day: Full background color
-            dayClasses = `${colorClass} text-white font-bold shadow-md hover:opacity-90`;
+            dayClasses = "bg-white text-gray-900 font-bold scale-110 shadow-lg border-blue-500";
+          } else if (style) {
+            // Workout day: Full background color (via style prop)
+            dayClasses = "text-white font-bold shadow-md hover:opacity-90 border-transparent";
           } else if (isCurrentMonthDay) {
              // Normal day
-            dayClasses = "text-gray-200 hover:bg-gray-700";
+            dayClasses = "text-gray-200 hover:bg-gray-700 border-transparent";
           } else {
              // Other month day
-            dayClasses = "text-gray-600";
+            dayClasses = "text-gray-600 border-transparent";
           }
           
           return (
@@ -142,6 +191,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ log, selectedDate, o
                     disabled={!isCurrentMonthDay} 
                     onClick={() => handleDateClick(day)} 
                     className={`${baseClasses} ${dayClasses}`}
+                    style={!isSelected && isCurrentMonthDay ? style : undefined}
                 >
                     {day.getDate()}
                 </button>
