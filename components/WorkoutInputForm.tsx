@@ -53,6 +53,23 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
       return routines.find(r => r.id === routineId) || null;
   }, [weeklySchedule, routines]);
 
+  // Check if the scheduled routine has already been logged today
+  const isTodayLogged = useMemo(() => {
+      if (!todayScheduledRoutine) return false;
+      
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+      // Check if any exercise from the routine exists in the log for today
+      return log.some(entry => {
+          const entryDate = new Date(entry.date);
+          const entryDateStr = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}-${String(entryDate.getDate()).padStart(2, '0')}`;
+          
+          return entryDateStr === todayStr && 
+                 todayScheduledRoutine.exercises.some(re => re.exerciseName === entry.exercise);
+      });
+  }, [log, todayScheduledRoutine]);
+
   const exerciseImage = useMemo(() => {
     if (!selectedPart || !selectedExercise) return null;
     return exercises[selectedPart]?.find(ex => ex.name === selectedExercise)?.image;
@@ -131,7 +148,7 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
   };
   
   const handleQuickLogSchedule = () => {
-      if (!todayScheduledRoutine) return;
+      if (!todayScheduledRoutine || isTodayLogged) return;
       setInitialRoutineId(todayScheduledRoutine.id);
       setIsRoutineModalOpen(true);
   }
@@ -159,19 +176,38 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
       </button>
       
       {todayScheduledRoutine && (
-         <div className="mb-6 bg-gradient-to-r from-blue-900/50 to-purple-900/50 p-4 rounded-xl border border-blue-500/30">
-             <div className="flex items-center gap-3 mb-3">
-                 <CalendarIcon className="w-6 h-6 text-blue-400" />
-                 <div>
-                     <p className="text-xs text-blue-300 font-bold">جدول اليوم</p>
-                     <h3 className="text-lg font-bold text-white">{todayScheduledRoutine.name}</h3>
+         <div className={`mb-6 p-4 rounded-xl border transition-all duration-500 ${
+             isTodayLogged 
+             ? 'bg-green-900/20 border-green-500/30' 
+             : 'bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-blue-500/30'
+         }`}>
+             <div className="flex items-center justify-between mb-3">
+                 <div className="flex items-center gap-3">
+                    <CalendarIcon className={`w-6 h-6 ${isTodayLogged ? 'text-green-400' : 'text-blue-400'}`} />
+                    <div>
+                        <p className={`text-xs font-bold ${isTodayLogged ? 'text-green-300' : 'text-blue-300'}`}>
+                            {isTodayLogged ? 'تم إنجاز جدول اليوم' : 'جدول اليوم'}
+                        </p>
+                        <h3 className="text-lg font-bold text-white">{todayScheduledRoutine.name}</h3>
+                    </div>
                  </div>
+                 {isTodayLogged && (
+                     <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-fade-in">
+                         تم التسجيل ✅
+                     </span>
+                 )}
              </div>
+             
              <button 
                 onClick={handleQuickLogSchedule}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-3 rounded-lg transition-colors shadow-md"
+                disabled={isTodayLogged}
+                className={`w-full text-sm font-bold py-2 px-3 rounded-lg transition-colors shadow-md ${
+                    isTodayLogged 
+                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-500 text-white'
+                }`}
              >
-                 تسجيل تمارين اليوم سريعاً (ببيانات سابقة)
+                 {isTodayLogged ? 'تم تسجيل التمارين' : 'تسجيل تمارين اليوم سريعاً'}
              </button>
          </div>
       )}
