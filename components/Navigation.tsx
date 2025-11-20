@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ActivityIcon, CalendarIcon, ChartBarIcon, ClipboardListIcon, SettingsIcon } from './Icons';
+import { ActivityIcon, CalendarIcon, ChartBarIcon, ClipboardListIcon, SettingsIcon, GlobeIcon } from './Icons';
 import { Logo } from './Logo';
 import type { View } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -29,22 +29,23 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onNavigate }
                         <Logo className="w-12 h-12" />
                         <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-400 to-sky-500 bg-clip-text text-transparent">{t('app_title')}</h1>
                     </div>
-                    {/* Mobile Language Toggle */}
+                    {/* Mobile Language Toggle - Globe Icon */}
                     <button 
                         onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-                        className="sm:hidden px-3 py-1 rounded-md bg-gray-700 text-white font-bold text-sm"
+                        className="sm:hidden p-2 rounded-full bg-gray-700 text-white"
                     >
-                        {language === 'ar' ? 'EN' : 'عربي'}
+                        <GlobeIcon className="w-5 h-5" />
                     </button>
                 </div>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                     {/* Desktop Language Toggle */}
+                     {/* Desktop Language Toggle - Globe Icon */}
                     <button 
                         onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-                        className="hidden sm:block px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600 text-white font-bold text-sm transition-colors mr-2"
+                        className="hidden sm:block p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-colors mr-2"
+                        title={language === 'ar' ? 'Switch to English' : 'التحويل للعربية'}
                     >
-                        {language === 'ar' ? 'English' : 'عربي'}
+                        <GlobeIcon className="w-5 h-5" />
                     </button>
 
                     <ul className="flex items-center justify-around sm:justify-end gap-1 sm:gap-2 bg-gray-900/50 sm:bg-transparent p-1 rounded-lg flex-grow">
