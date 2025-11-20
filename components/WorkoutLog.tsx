@@ -5,7 +5,7 @@ import { LogItem } from './LogItem';
 import { Modal } from './Modal';
 import { ImageModal } from './ImageModal';
 import { EditWorkoutModal } from './EditWorkoutModal';
-import { ClearIcon, CsvIcon, ActivityIcon, ChevronRightIcon, ChevronLeftIcon, CalendarIcon } from './Icons';
+import { ClearIcon, CsvIcon, ActivityIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
 
 interface WorkoutLogProps {
   log: WorkoutEntry[];
@@ -18,19 +18,16 @@ interface WorkoutLogProps {
 }
 
 export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, onDeleteEntry, onUpdateEntry, onClearLog, showIntro, bodyParts, exercises }) => {
-  // Calculate today string once to use across component
-  const todayStr = useMemo(() => {
-      const today = new Date();
-      return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  }, []);
-
-  // State for the currently viewed date string (YYYY-MM-DD)
-  const [viewDate, setViewDate] = useState<string>(todayStr);
-  
   const [selectedPartFilter, setSelectedPartFilter] = useState<string>('all');
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<WorkoutEntry | null>(null);
   const [viewingImage, setViewingImage] = useState<{src: string; alt: string} | null>(null);
+  
+  // Accordion State: Set of expanded dates
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
+  
+  // Pagination State: Number of visible days
+  const [visibleDaysCount, setVisibleDaysCount] = useState(7);
 
   // Helper: Get normalized date string YYYY-MM-DD
   const getDateStr = (dateStr: string) => {
@@ -38,117 +35,50 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, onDeleteEntry, onUp
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   };
 
-  // 0. Filter the entire log based on the selected Body Part first
-  const filteredGlobalLog = useMemo(() => {
+  // 1. Filter Log based on selection
+  const filteredLog = useMemo(() => {
       if (selectedPartFilter === 'all') return log;
       return log.filter(e => e.part === selectedPartFilter);
   }, [log, selectedPartFilter]);
 
-  // 1. Get all unique dates that have logs (respecting the filter), sorted descending (newest first)
-  const activeDates = useMemo(() => {
-      const dates = new Set<string>();
-      filteredGlobalLog.forEach(entry => {
-          if (entry.date) {
-              dates.add(getDateStr(entry.date));
-          }
-      });
-      return Array.from(dates).sort((a, b) => b.localeCompare(a));
-  }, [filteredGlobalLog]);
-
-  // 2. Get available weeks for the dropdown filter (respecting the filter) with Month Context
-  const availableWeeks = useMemo(() => {
-      const weeksMap = new Map<number, string>();
-      
-      filteredGlobalLog.forEach(entry => {
-          if (!weeksMap.has(entry.week)) {
-              // Get the month name from the first entry found for this week
-              const date = new Date(entry.date);
-              const monthName = date.toLocaleDateString('ar-EG', { month: 'long' });
-              weeksMap.set(entry.week, monthName);
-          }
+  // 2. Group logs by Date
+  const groupedLogs = useMemo(() => {
+      const groups: Record<string, WorkoutEntry[]> = {};
+      filteredLog.forEach(entry => {
+          const dateStr = getDateStr(entry.date);
+          if (!groups[dateStr]) groups[dateStr] = [];
+          groups[dateStr].push(entry);
       });
 
-      // Sort by week number descending
-      return Array.from(weeksMap.entries())
-          .sort((a, b) => b[0] - a[0])
-          .map(([weekNum, monthName]) => ({ weekNum, monthName }));
-  }, [filteredGlobalLog]);
-
-  // 3. Filter logs for the current viewDate (from the globally filtered log)
-  const dailyLogs = useMemo(() => {
-      return filteredGlobalLog.filter(entry => getDateStr(entry.date) === viewDate);
-  }, [filteredGlobalLog, viewDate]);
-
-  // 4. Get distinct body parts for the current day (for the visual header)
-  const uniqueDayParts = useMemo(() => {
-      const partIds = new Set(dailyLogs.map(e => e.part));
-      return bodyParts.filter(p => partIds.has(p.id));
-  }, [dailyLogs, bodyParts]);
-
-  // Effect: When filter changes, if current viewDate becomes invalid (empty), jump to the newest valid date
-  // EXCEPT if today is selected, we want to stay on today even if empty.
+      // Sort by date descending (Newest first)
+      return Object.entries(groups)
+          .map(([date, entries]) => ({ date, entries }))
+          .sort((a, b) => b.date.localeCompare(a.date));
+  }, [filteredLog]);
+  
+  // Auto-expand today or the first day if it's the only one
   useEffect(() => {
-      // Only auto-jump if:
-      // 1. We have some logs in history (activeDates > 0)
-      // 2. The current viewDate is NOT in those active logs (meaning it's empty based on current filter)
-      // 3. AND critically: The current viewDate is NOT today. (Always allow viewing today).
-      if (activeDates.length > 0 && !activeDates.includes(viewDate) && viewDate !== todayStr) {
-          setViewDate(activeDates[0]);
-      }
-  }, [selectedPartFilter, activeDates, viewDate, todayStr]);
-
-  // Navigation Handlers
-  const handlePrevDay = () => {
-      const currentIndex = activeDates.indexOf(viewDate);
-      if (currentIndex !== -1 && currentIndex < activeDates.length - 1) {
-          setViewDate(activeDates[currentIndex + 1]);
-      } else if (currentIndex === -1) {
-          // If we are on "Today" (and it's empty), jump to the most recent log
-          if (activeDates.length > 0 && viewDate > activeDates[0]) {
-               setViewDate(activeDates[0]);
-          } else {
-               const olderDate = activeDates.find(d => d < viewDate);
-               if (olderDate) setViewDate(olderDate);
+      if (groupedLogs.length > 0) {
+          const today = getDateStr(new Date().toISOString());
+          if (groupedLogs[0].date === today) {
+              setExpandedDates(prev => new Set(prev).add(today));
           }
       }
-  };
+  }, [groupedLogs.length]); // Only run when logs length changes significantly
 
-  const handleNextDay = () => {
-      const currentIndex = activeDates.indexOf(viewDate);
-      if (currentIndex > 0) {
-          setViewDate(activeDates[currentIndex - 1]);
-      } else if (currentIndex === -1) {
-           // If we are on an old date and want to go newer
-           const newerDate = [...activeDates].reverse().find(d => d > viewDate);
-           if (newerDate) setViewDate(newerDate);
-           else if (viewDate < todayStr) setViewDate(todayStr);
-      } else if (currentIndex === 0 && viewDate !== todayStr) {
-           // If we are at the newest log, next step is Today
-           setViewDate(todayStr);
+  const toggleDay = (date: string) => {
+      const newSet = new Set(expandedDates);
+      if (newSet.has(date)) {
+          newSet.delete(date);
+      } else {
+          newSet.add(date);
       }
-  };
-
-  const handleJumpToWeek = (week: number) => {
-      const entry = filteredGlobalLog.find(e => e.week === week);
-      if (entry) {
-          setViewDate(getDateStr(entry.date));
-      }
-  };
-
-  const handleJumpToToday = () => {
-      // FIX: Reset filter to 'all' when jumping to today to ensure visibility regardless of previous filter
-      setSelectedPartFilter('all');
-      setViewDate(todayStr);
+      setExpandedDates(newSet);
   };
   
-  const daySummary = useMemo(() => {
-      if (dailyLogs.length === 0) return null;
-      const totalSets = dailyLogs.length;
-      const totalVolume = dailyLogs.reduce((sum, e) => sum + (e.weight * e.reps), 0);
-      const weekNum = dailyLogs[0].week;
-      return { totalSets, totalVolume, weekNum };
-  }, [dailyLogs]);
-
+  const handleLoadMore = () => {
+      setVisibleDaysCount(prev => prev + 7);
+  };
 
   const handleUpdate = (updatedEntry: WorkoutEntry) => {
     onUpdateEntry(updatedEntry);
@@ -161,7 +91,7 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, onDeleteEntry, onUp
   };
 
   const exportCSV = () => {
-    const dataToExport = filteredGlobalLog.length > 0 ? filteredGlobalLog : log;
+    const dataToExport = filteredLog.length > 0 ? filteredLog : log;
     if (dataToExport.length === 0) {
       alert("لا يوجد بيانات للتصدير");
       return;
@@ -192,22 +122,14 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, onDeleteEntry, onUp
     document.body.removeChild(link);
   };
 
-  const formattedDisplayDate = new Date(viewDate).toLocaleDateString('ar-EG', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', calendar: 'gregory'
-  });
-
-  const isToday = viewDate === todayStr;
-  const hasNewerLogs = activeDates.some(d => d > viewDate) || (activeDates.length > 0 && viewDate < todayStr && !isToday);
-  const hasOlderLogs = activeDates.some(d => d < viewDate);
-
   return (
     <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg ring-1 ring-white/10 h-full flex flex-col">
       
-      {/* Header & Navigation */}
+      {/* Header & Filters */}
       <div className="flex flex-col gap-4 mb-6 border-b border-gray-700 pb-6">
           <div className="flex items-center justify-between">
               <h3 className="text-2xl font-bold text-white flex items-center gap-2">
-                  📊 السجل اليومي
+                  📊 سجل التمارين
               </h3>
               <div className="flex gap-2">
                   <button onClick={exportCSV} className="bg-gray-700 p-2 rounded-lg hover:bg-gray-600 text-green-400" title="تصدير CSV">
@@ -219,166 +141,153 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, onDeleteEntry, onUp
               </div>
           </div>
 
-          {/* Date Navigation Bar */}
-          <div className="bg-gray-900/50 p-2 rounded-xl flex items-center justify-between shadow-inner">
-              <button 
-                  onClick={handlePrevDay} 
-                  disabled={!hasOlderLogs}
-                  className="p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                  <ChevronRightIcon className="w-6 h-6" />
-              </button>
-
-              <div className="flex flex-col items-center">
-                  <div className="flex items-center gap-2 text-lg font-bold text-white">
-                      <CalendarIcon className="w-5 h-5 text-blue-400"/>
-                      <span>{formattedDisplayDate}</span>
-                  </div>
-                  {isToday && <span className="text-xs text-green-400 font-bold">اليوم</span>}
-              </div>
-
-              <button 
-                  onClick={handleNextDay} 
-                  disabled={!hasNewerLogs && isToday}
-                  className="p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                  <ChevronLeftIcon className="w-6 h-6" />
-              </button>
-          </div>
-
-          {/* Quick Filters - Centered & Improved */}
-          <div className="flex flex-col gap-4 mt-2">
-                {/* Body Part Icons Filter */}
-                <div className="flex justify-center w-full">
-                    <div className="flex gap-3 overflow-x-auto pb-2 px-4 no-scrollbar max-w-full items-center">
+          {/* Centered Body Part Filters */}
+          <div className="flex justify-center w-full mt-2">
+                <div className="flex gap-3 overflow-x-auto pb-2 px-4 no-scrollbar max-w-full items-center">
+                    <button
+                        onClick={() => setSelectedPartFilter('all')}
+                        className={`flex flex-shrink-0 items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
+                            selectedPartFilter === 'all'
+                            ? 'bg-white text-gray-900 shadow-lg scale-105 ring-2 ring-blue-400'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white'
+                        }`}
+                    >
+                        الكل
+                    </button>
+                    {bodyParts.map(part => (
                         <button
-                            onClick={() => setSelectedPartFilter('all')}
+                            key={part.id}
+                            onClick={() => setSelectedPartFilter(part.id)}
                             className={`flex flex-shrink-0 items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
-                                selectedPartFilter === 'all'
-                                ? 'bg-white text-gray-900 shadow-lg scale-105 ring-2 ring-blue-400'
+                                selectedPartFilter === part.id
+                                ? `bg-gradient-to-r ${part.gradient} text-white shadow-lg scale-105 ring-2 ring-white/30`
                                 : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white'
                             }`}
                         >
-                            الكل
+                            <span>{part.icon}</span>
+                            <span>{part.name}</span>
                         </button>
-                        {bodyParts.map(part => (
-                            <button
-                                key={part.id}
-                                onClick={() => setSelectedPartFilter(part.id)}
-                                className={`flex flex-shrink-0 items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
-                                    selectedPartFilter === part.id
-                                    ? `bg-gradient-to-r ${part.gradient} text-white shadow-lg scale-105 ring-2 ring-white/30`
-                                    : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white'
-                                }`}
-                            >
-                                <span>{part.icon}</span>
-                                <span>{part.name}</span>
-                            </button>
-                        ))}
-                    </div>
+                    ))}
                 </div>
-
-                <div className="flex items-center justify-between gap-2 px-2">
-                    {/* Week Filter */}
-                   {availableWeeks.length > 0 && (
-                       <div className="relative flex-grow sm:flex-grow-0">
-                           <select 
-                            onChange={(e) => handleJumpToWeek(Number(e.target.value))}
-                            value={daySummary?.weekNum || ''}
-                            className="w-full bg-gray-700/50 text-white text-sm pl-3 pr-8 py-2 rounded-lg border border-gray-600/30 focus:ring-2 focus:ring-blue-500 outline-none appearance-none hover:bg-gray-700 transition-colors"
-                           >
-                               <option value="" disabled>تصفح حسب الأسبوع...</option>
-                               {availableWeeks.map(w => (
-                                   <option key={w.weekNum} value={w.weekNum}>
-                                       أسبوع {w.weekNum} ({w.monthName})
-                                   </option>
-                               ))}
-                           </select>
-                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center px-2 text-gray-400">
-                                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                            </div>
-                       </div>
-                   )}
-                   
-                   {!isToday && (
-                       <button onClick={handleJumpToToday} className="px-4 py-2 bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm font-bold transition-colors whitespace-nowrap shadow-sm">
-                           عودة لليوم
-                       </button>
-                   )}
-                </div>
-          </div>
+            </div>
       </div>
 
-      {/* Content Area */}
-      {dailyLogs.length > 0 ? (
-          <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-4">
-              
-              {/* Body Part Focus Banner (NEW) */}
-              {uniqueDayParts.length > 0 && (
-                  <div className="flex justify-center gap-3 mb-2 flex-wrap animate-fade-in">
-                      {uniqueDayParts.map(part => (
-                          <div key={part.id} className={`flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r ${part.gradient} text-white shadow-lg transform hover:scale-105 transition-transform cursor-default`}>
-                              <span className="text-2xl">{part.icon}</span>
-                              <span className="font-bold text-lg">{part.name}</span>
-                          </div>
-                      ))}
-                  </div>
-              )}
+      {/* Timeline Content */}
+      <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-4 custom-scrollbar">
+          {groupedLogs.length > 0 ? (
+              <>
+                {groupedLogs.slice(0, visibleDaysCount).map(({ date, entries }) => {
+                    const isExpanded = expandedDates.has(date);
+                    
+                    // Day Summary Stats
+                    const totalVolume = entries.reduce((sum, e) => sum + (e.weight * e.reps), 0);
+                    const totalSets = entries.length;
+                    const uniqueExercisesCount = new Set(entries.map(e => e.exercise)).size;
+                    
+                    // Unique Body Parts for this day
+                    const uniqueParts = Array.from(new Set(entries.map(e => e.part)))
+                        .map(id => bodyParts.find(p => p.id === id)).filter(Boolean);
 
-              {/* Day Stats */}
-              {daySummary && (
-                  <div className="grid grid-cols-3 gap-2 mb-4 text-center">
-                      <div className="bg-gray-700/30 p-2 rounded-lg">
-                          <p className="text-xs text-gray-400">الأسبوع</p>
-                          <p className="text-lg font-bold text-yellow-400">{daySummary.weekNum}</p>
-                      </div>
-                       <div className="bg-gray-700/30 p-2 rounded-lg">
-                          <p className="text-xs text-gray-400">مجموعات</p>
-                          <p className="text-lg font-bold text-cyan-400">{daySummary.totalSets}</p>
-                      </div>
-                       <div className="bg-gray-700/30 p-2 rounded-lg" title="مجموع (الوزن × التكرارات) لكل التمارين">
-                          <p className="text-xs text-gray-400">إجمالي الحمل (كجم)</p>
-                          <p className="text-lg font-bold text-purple-400">{(daySummary.totalVolume / 1000).toFixed(1)}k</p>
-                      </div>
-                  </div>
-              )}
+                    const formattedDate = new Date(date).toLocaleDateString('ar-EG', {
+                         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', calendar: 'gregory'
+                    });
 
-              {/* Logs List */}
-              <div className="space-y-3">
-                {dailyLogs.map(entry => (
-                    <LogItem 
-                        key={entry.id} 
-                        entry={entry}
-                        bodyParts={bodyParts}
-                        onDelete={onDeleteEntry}
-                        onEditRequest={setEditingEntry}
-                        onImageClick={setViewingImage}
-                    />
-                ))}
-              </div>
-          </div>
-      ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center text-gray-500 p-8 border-2 border-dashed border-gray-700 rounded-xl bg-gray-800/50">
-            <ActivityIcon className="w-16 h-16 mb-4 text-gray-600"/>
-            <h4 className="text-xl font-bold text-gray-400">
-                {selectedPartFilter !== 'all' 
-                    ? `لا توجد تمارين ${bodyParts.find(p => p.id === selectedPartFilter)?.name || ''} في هذا اليوم`
-                    : "لا توجد تمارين لهذا اليوم"}
-            </h4>
-            <p className="mb-6 text-sm text-gray-500">
-                {activeDates.length > 0 ? "استخدم الأسهم أو القائمة للتنقل بين الأيام المسجلة." : "ابدأ بتسجيل تمارينك الآن!"}
-            </p>
-            
-            {activeDates.length > 0 && !isToday && (
-                <button 
-                    onClick={() => setViewDate(activeDates[0])}
-                    className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-bold transition-colors shadow-lg"
-                >
-                    الذهاب لآخر تمرين مسجل
-                </button>
-            )}
-        </div>
-      )}
+                    // Group entries by part for display inside the accordion
+                    const entriesByPart = entries.reduce((acc, entry) => {
+                        if (!acc[entry.part]) acc[entry.part] = [];
+                        acc[entry.part].push(entry);
+                        return acc;
+                    }, {} as Record<string, WorkoutEntry[]>);
+
+                    return (
+                        <div key={date} className="rounded-2xl overflow-hidden ring-1 ring-white/5 transition-all duration-300">
+                            {/* Header (Clickable) */}
+                            <button 
+                                onClick={() => toggleDay(date)}
+                                className={`w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 text-right transition-colors duration-300 ${
+                                    isExpanded ? 'bg-gray-700/80' : 'bg-gray-800 hover:bg-gray-700'
+                                }`}
+                            >
+                                <div>
+                                    <h4 className="text-lg font-bold text-white mb-2">{formattedDate}</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {uniqueParts.map(part => part && (
+                                            <span key={part.id} className={`text-xs px-2 py-1 rounded-md bg-gradient-to-r ${part.gradient} text-white font-bold shadow-sm flex items-center gap-1`}>
+                                                {part.icon} {part.name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto mt-2 sm:mt-0">
+                                    <div className="flex gap-4 text-sm text-gray-400">
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-xs text-gray-500">تمارين</span>
+                                            <span className="font-bold text-blue-400">{uniqueExercisesCount}</span>
+                                        </div>
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-xs text-gray-500">مجموعات</span>
+                                            <span className="font-bold text-white">{totalSets}</span>
+                                        </div>
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-xs text-gray-500">الحمل</span>
+                                            <span className="font-bold text-purple-400">{(totalVolume / 1000).toFixed(1)}k</span>
+                                        </div>
+                                    </div>
+                                    <div className={`text-gray-400 transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                                        <ChevronDownIcon className="w-6 h-6"/>
+                                    </div>
+                                </div>
+                            </button>
+
+                            {/* Expanded Content */}
+                            {isExpanded && (
+                                <div className="bg-gray-900/30 border-t border-gray-700 p-4 animate-fade-in">
+                                    {Object.entries(entriesByPart).map(([partId, partEntries]) => {
+                                        const part = bodyParts.find(p => p.id === partId);
+                                        return (
+                                            <div key={partId} className="mb-6 last:mb-0">
+                                                <h5 className="text-sm font-bold text-gray-400 mb-3 flex items-center gap-2">
+                                                    {part?.icon} تمارين {part?.name}
+                                                </h5>
+                                                <div className="space-y-3">
+                                                    {(partEntries as WorkoutEntry[]).map(entry => (
+                                                        <LogItem 
+                                                            key={entry.id} 
+                                                            entry={entry}
+                                                            bodyParts={bodyParts}
+                                                            onDelete={onDeleteEntry}
+                                                            onEditRequest={setEditingEntry}
+                                                            onImageClick={setViewingImage}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+                
+                {visibleDaysCount < groupedLogs.length && (
+                    <button 
+                        onClick={handleLoadMore}
+                        className="w-full py-3 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-xl font-bold transition-colors mt-4"
+                    >
+                        عرض المزيد من الأيام السابقة...
+                    </button>
+                )}
+              </>
+          ) : (
+              <div className="flex flex-col items-center justify-center text-center text-gray-500 p-12 border-2 border-dashed border-gray-700 rounded-xl bg-gray-800/50 mt-4">
+                <ActivityIcon className="w-16 h-16 mb-4 text-gray-600"/>
+                <h4 className="text-xl font-bold text-gray-400">لا توجد سجلات</h4>
+                <p className="text-sm mt-2">ابدأ بتسجيل تمارينك اليوم لتراها هنا!</p>
+            </div>
+          )}
+      </div>
 
       <Modal
         isOpen={isClearModalOpen}

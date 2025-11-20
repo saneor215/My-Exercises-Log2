@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import type { WorkoutEntry, BodyPart, Exercise, BodyPartId, WeeklySchedule, WorkoutRoutine } from '../types';
+import type { WorkoutEntry, BodyPart, Exercise, BodyPartId, WeeklySchedule, WorkoutRoutine, RoutineExercise } from '../types';
 import { CalendarView } from './CalendarView';
 import { LogItem } from './LogItem';
 import { EditWorkoutModal } from './EditWorkoutModal';
@@ -48,13 +48,23 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
         });
     }, [validLog, selectedDate]);
     
+    // Group entries by part for display
+    const entriesByPart = useMemo(() => {
+        return filteredLog.reduce((acc, entry) => {
+            if (!acc[entry.part]) acc[entry.part] = [];
+            acc[entry.part].push(entry);
+            return acc;
+        }, {} as Record<string, WorkoutEntry[]>);
+    }, [filteredLog]);
+
     // Calculate Day Summary (Stats)
     const daySummary = useMemo(() => {
       if (filteredLog.length === 0) return null;
       const totalSets = filteredLog.length;
       const totalVolume = filteredLog.reduce((sum, e) => sum + (e.weight * e.reps), 0);
+      const uniqueExercises = new Set(filteredLog.map(e => e.exercise)).size;
       const weekNum = filteredLog[0].week;
-      return { totalSets, totalVolume, weekNum };
+      return { totalSets, totalVolume, uniqueExercises, weekNum };
     }, [filteredLog]);
 
     // Calculate Unique Parts for Badges
@@ -122,34 +132,50 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
 
                             {/* Stats Section */}
                             {daySummary && (
-                                <div className="grid grid-cols-3 gap-4 text-center bg-gray-700/30 p-4 rounded-xl border border-gray-600/20">
+                                <div className="grid grid-cols-4 gap-2 sm:gap-4 text-center bg-gray-700/30 p-4 rounded-xl border border-gray-600/20">
                                     <div>
                                         <p className="text-xs text-gray-400 mb-1">الأسبوع</p>
-                                        <p className="text-xl font-bold text-yellow-400">{daySummary.weekNum}</p>
+                                        <p className="text-lg sm:text-xl font-bold text-yellow-400">{daySummary.weekNum}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400 mb-1">التمارين</p>
+                                        <p className="text-lg sm:text-xl font-bold text-blue-400">{daySummary.uniqueExercises}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-400 mb-1">مجموعات</p>
-                                        <p className="text-xl font-bold text-cyan-400">{daySummary.totalSets}</p>
+                                        <p className="text-lg sm:text-xl font-bold text-cyan-400">{daySummary.totalSets}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-400 mb-1">إجمالي الحمل</p>
-                                        <p className="text-xl font-bold text-purple-400">{(daySummary.totalVolume / 1000).toFixed(1)}k</p>
+                                        <p className="text-xs text-gray-400 mb-1">الحمل</p>
+                                        <p className="text-lg sm:text-xl font-bold text-purple-400">{(daySummary.totalVolume / 1000).toFixed(1)}k</p>
                                     </div>
                                 </div>
                             )}
 
-                            {/* List */}
-                            <div className="space-y-4">
-                                {filteredLog.map(entry => (
-                                    <LogItem 
-                                        key={entry.id} 
-                                        entry={entry}
-                                        bodyParts={bodyParts}
-                                        onDelete={onDeleteEntry}
-                                        onEditRequest={setEditingEntry}
-                                        onImageClick={setViewingImage}
-                                    />
-                                ))}
+                            {/* Grouped List by Body Part */}
+                            <div className="space-y-6">
+                                {Object.entries(entriesByPart).map(([partId, partEntries]) => {
+                                    const part = bodyParts.find(p => p.id === partId);
+                                    return (
+                                        <div key={partId} className="bg-gray-900/30 border border-gray-700/50 p-4 rounded-2xl">
+                                            <h4 className="text-sm font-bold text-gray-400 mb-3 flex items-center gap-2">
+                                                {part?.icon} تمارين {part?.name}
+                                            </h4>
+                                            <div className="space-y-3">
+                                                {partEntries.map(entry => (
+                                                    <LogItem 
+                                                        key={entry.id} 
+                                                        entry={entry}
+                                                        bodyParts={bodyParts}
+                                                        onDelete={onDeleteEntry}
+                                                        onEditRequest={setEditingEntry}
+                                                        onImageClick={setViewingImage}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     ) : scheduledRoutineForSelectedDate ? (

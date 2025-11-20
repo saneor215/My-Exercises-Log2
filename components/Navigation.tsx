@@ -23,8 +23,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onNavigate }
         <header className="mb-6">
             <nav className="bg-gray-800 p-3 sm:p-2 rounded-xl shadow-lg ring-1 ring-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <Logo className="w-10 h-10" />
-                    <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">سجل المتابعة الرياضي والغذائي</h1>
+                    <Logo className="w-12 h-12" />
+                    <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-400 to-sky-500 bg-clip-text text-transparent">سجل المتابعة الرياضي والغذائي</h1>
                 </div>
                 <ul className="flex items-center justify-around sm:justify-end gap-1 sm:gap-2 bg-gray-900/50 sm:bg-transparent p-1 rounded-lg">
                     {navItems.map(item => (

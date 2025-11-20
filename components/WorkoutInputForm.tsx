@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import type { WorkoutEntry, BodyPartId, BodyPart, Exercise, WorkoutRoutine, WeeklySchedule, RoutineExercise } from '../types';
-import { SaveIcon, ClockIcon, ClipboardPlusIcon, CalendarIcon } from './Icons';
+import { SaveIcon, ClockIcon, ClipboardPlusIcon, CalendarIcon, PencilIcon } from './Icons';
 import { StartRoutineModal } from './StartRoutineModal';
 
 interface WorkoutInputFormProps {
@@ -216,12 +216,15 @@ export const WorkoutInputForm: React.FC<WorkoutInputFormProps> = ({ onAddEntry, 
         <span>{routines.length > 0 ? 'بدء تمرين من خطة' : 'أنشئ خطة أولاً في الإعدادات'}</span>
       </button>
 
-      <div className="relative mb-6">
+      <div className="relative mb-6 mt-8">
         <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-700"></div>
         </div>
         <div className="relative flex justify-center">
-            <span className="bg-gray-800 px-3 text-sm text-gray-500">أو تسجيل تمرين فردي</span>
+            <span className="bg-gray-800 px-4 py-1.5 text-sm font-bold text-blue-400 border border-blue-500/20 rounded-full shadow-md flex items-center gap-2">
+                <PencilIcon className="w-4 h-4" />
+                أو قم بتسجيل تمرين مخصص يدوياً
+            </span>
         </div>
       </div>
       
