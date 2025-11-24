@@ -9,7 +9,7 @@ export const translations = {
     nav_diet: 'البرنامج الغذائي',
     nav_progress: 'التقدم',
     nav_settings: 'الإعدادات',
-    app_title: 'سجل المتابعة الرياضي والغذائي',
+    app_title: 'برنامج المتابعة الرياضي والغذائي',
 
     // Body Parts (Default names fallback)
     part_upper: 'علوي',
@@ -90,7 +90,7 @@ export const translations = {
     meal_dinner: '🌙 العشاء',
     meal_postWorkout: '🏋️‍♂️ بعد التمرين',
     meal_snacks: '🍏 وجبات خفيفة',
-    copy_yesterday: 'نسخ وجبات الأمس',
+    copy_yesterday: 'نسخ الخطة الغذائية ليوم أمس',
     copy_done: 'تم نسخ الوجبات بنجاح',
     alert_no_data_yesterday: 'عفواً، لا توجد وجبات مسجلة في يوم أمس لتكرارها.',
     confirm_overwrite: 'يوجد طعام مسجل اليوم بالفعل. هل تريد استبداله بوجبات الأمس؟',
@@ -274,7 +274,7 @@ export const translations = {
     meal_dinner: '🌙 Dinner',
     meal_postWorkout: '🏋️‍♂️ Post-Workout',
     meal_snacks: '🍏 Snacks',
-    copy_yesterday: 'Copy Yesterday\'s Meals',
+    copy_yesterday: 'Copy Yesterday\'s Diet Plan',
     copy_done: 'Repeated successfully',
     alert_no_data_yesterday: 'Sorry, nothing to repeat from yesterday.',
     confirm_overwrite: 'There are meals logged today. Overwrite with yesterday\'s meals?',
