@@ -156,7 +156,7 @@ export const CalendarPage: React.FC<CalendarPageProps> = ({ log, onDeleteEntry, 
                                                 {part?.icon} {t('exercises')} {t(`part_${part?.id}` as any) || part?.name}
                                             </h4>
                                             <div className="space-y-3">
-                                                {partEntries.map(entry => (
+                                                {(partEntries as WorkoutEntry[]).map(entry => (
                                                     <LogItem 
                                                         key={entry.id} 
                                                         entry={entry}

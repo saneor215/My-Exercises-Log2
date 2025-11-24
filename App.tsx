@@ -137,6 +137,19 @@ function AppContent() {
     });
   }, [setDailyDietLogs, dietPlan]);
 
+  const replaceDayLog = useCallback((date: string, sourceLog: DietPlan) => {
+      const newLog: DietPlan = {};
+      (Object.keys(sourceLog) as MealType[]).forEach(meal => {
+          if (sourceLog[meal]) {
+              newLog[meal] = sourceLog[meal]!.map(item => ({
+                  ...item,
+                  id: crypto.randomUUID()
+              }));
+          }
+      });
+      setDailyDietLogs(prev => ({ ...prev, [date]: newLog }));
+  }, [setDailyDietLogs]);
+
 
   // --- DATA MANAGEMENT (IMPORT/EXPORT) ---
   const importData = useCallback((data: AppData) => {
@@ -237,6 +250,7 @@ function AppContent() {
                 onRemoveLoggedFood={removeLoggedFood}
                 onAddFoodToDatabase={addFoodToDatabase}
                 onUpdateDietPlan={updateDietPlan}
+                onReplaceDayLog={replaceDayLog}
               />
            )}
            {activeView === 'settings' && (

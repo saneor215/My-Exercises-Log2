@@ -90,6 +90,10 @@ export const translations = {
     meal_dinner: '🌙 العشاء',
     meal_postWorkout: '🏋️‍♂️ بعد التمرين',
     meal_snacks: '🍏 وجبات خفيفة',
+    copy_yesterday: 'نسخ وجبات الأمس',
+    copy_done: 'تم نسخ الوجبات بنجاح',
+    alert_no_data_yesterday: 'عفواً، لا توجد وجبات مسجلة في يوم أمس لتكرارها.',
+    confirm_overwrite: 'يوجد طعام مسجل اليوم بالفعل. هل تريد استبداله بوجبات الأمس؟',
     
     // Add Food Modal
     add_food_title: 'إضافة طعام',
@@ -270,6 +274,10 @@ export const translations = {
     meal_dinner: '🌙 Dinner',
     meal_postWorkout: '🏋️‍♂️ Post-Workout',
     meal_snacks: '🍏 Snacks',
+    copy_yesterday: 'Copy Yesterday\'s Meals',
+    copy_done: 'Repeated successfully',
+    alert_no_data_yesterday: 'Sorry, nothing to repeat from yesterday.',
+    confirm_overwrite: 'There are meals logged today. Overwrite with yesterday\'s meals?',
     
     // Add Food Modal
     add_food_title: 'Add Food',

@@ -1,12 +1,18 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import type { NutritionGoals, FoodItem, DailyDietLog, MealType, LoggedFood, MicronutrientInfo, DietPlan } from '../types';
-import { ChevronLeftIcon, ChevronRightIcon, PlusCircleIcon, TrashIcon, SaveIcon, BookOpenIcon } from './Icons';
+import { ChevronLeftIcon, ChevronRightIcon, PlusCircleIcon, TrashIcon, SaveIcon, BookOpenIcon, CopyIcon } from './Icons';
 import { ManageFoodItemModal } from './ManageFoodItemModal';
 import { MICRONUTRIENTS_LIST } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const toYMD = (date: Date) => date.toISOString().split('T')[0];
+// Use local time for date string to avoid timezone issues
+const toYMD = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
 
 const TotalsSummary: React.FC<{ totals: Record<string, number>, goals: NutritionGoals, consumedMicronutrients: MicronutrientInfo[] }> = ({ totals, goals, consumedMicronutrients }) => {
     const { t } = useLanguage();
@@ -175,19 +181,34 @@ interface DietPageProps {
     onRemoveLoggedFood: (date: string, meal: MealType, loggedFoodId: string) => void;
     onAddFoodToDatabase: (food: Omit<FoodItem, 'id'>) => FoodItem;
     onUpdateDietPlan: (plan: DietPlan) => void;
+    onReplaceDayLog: (date: string, sourceLog: DietPlan) => void;
 }
 
-export const DietPage: React.FC<DietPageProps> = ({ goals, foodDatabase, dailyLogs, dietPlan, onLogFood, onRemoveLoggedFood, onAddFoodToDatabase, onUpdateDietPlan }) => {
+export const DietPage: React.FC<DietPageProps> = ({ goals, foodDatabase, dailyLogs, dietPlan, onLogFood, onRemoveLoggedFood, onAddFoodToDatabase, onUpdateDietPlan, onReplaceDayLog }) => {
     const { t, language, dir } = useLanguage();
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [addingFoodTo, setAddingFoodTo] = useState<MealType | null>(null);
     const [isManageFoodModalOpen, setIsManageFoodModalOpen] = useState(false);
     const [isEditingPlan, setIsEditingPlan] = useState(false);
+    const [showCopySuccess, setShowCopySuccess] = useState(false);
 
     const selectedDateStr = toYMD(selectedDate);
     const currentDayLog = dailyLogs[selectedDateStr] !== undefined ? dailyLogs[selectedDateStr] : dietPlan;
     const displayLog = isEditingPlan ? dietPlan : currentDayLog;
-
+    
+    // Logic for Copy Yesterday
+    const yesterdayDate = new Date(selectedDate);
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterdayDateStr = toYMD(yesterdayDate);
+    
+    // Determine what was visible yesterday.
+    // If dailyLogs[yesterday] exists, it means the user modified yesterday (or saved it).
+    // If it doesn't exist, yesterday was showing the Base Plan (dietPlan).
+    const yesterdayLogVisible = dailyLogs[yesterdayDateStr] !== undefined ? dailyLogs[yesterdayDateStr] : dietPlan;
+    
+    // Check if yesterday had ANY data to copy (including from base plan)
+    const hasDataToCopy = Object.values(yesterdayLogVisible).some((meal: any) => meal && Array.isArray(meal) && meal.length > 0);
+    
     const { totals, consumedMicronutrients } = useMemo(() => {
         const dailyTotals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
         const micros = new Set<string>();
@@ -266,38 +287,84 @@ export const DietPage: React.FC<DietPageProps> = ({ goals, foodDatabase, dailyLo
             onRemoveLoggedFood(selectedDateStr, meal, loggedFoodId);
         }
     };
+    
+    const handleCopyYesterday = () => {
+        if (!hasDataToCopy) {
+            return;
+        }
+
+        // Check if today already has explicit data (don't overwrite silently)
+        const todayIsExplicit = dailyLogs[selectedDateStr] !== undefined;
+        const todayHasFood = Object.values(currentDayLog).some((meal: any) => meal && Array.isArray(meal) && meal.length > 0);
+
+        if (todayIsExplicit && todayHasFood) {
+             if (!confirm(t('confirm_overwrite'))) return;
+        }
+        
+        onReplaceDayLog(selectedDateStr, yesterdayLogVisible);
+        
+        // Show success message
+        setShowCopySuccess(true);
+        setTimeout(() => setShowCopySuccess(false), 3000);
+    }
 
     return (
-        <div className="space-y-6 sm:space-y-8">
-             <div className="bg-gray-800 p-4 rounded-2xl shadow-md ring-1 ring-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                 {!isEditingPlan ? (
-                     <div className="flex items-center justify-between w-full sm:w-auto gap-4 bg-gray-700/50 p-2 rounded-xl sm:bg-transparent sm:p-0">
-                         <button onClick={() => changeDate(dir === 'rtl' ? -1 : -1)} className="p-2 rounded-full hover:bg-gray-700 bg-gray-600 sm:bg-transparent"><ChevronLeftIcon /></button>
-                         <h2 className="text-lg sm:text-xl font-bold text-white">{selectedDate.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', calendar: 'gregory' })}</h2>
-                         <button onClick={() => changeDate(dir === 'rtl' ? 1 : 1)} className="p-2 rounded-full hover:bg-gray-700 bg-gray-600 sm:bg-transparent"><ChevronRightIcon /></button>
-                     </div>
-                 ) : (
-                     <div className="flex items-center justify-center w-full">
-                         <h2 className="text-xl font-bold text-amber-400 text-center">{t('edit_base_plan')}</h2>
-                     </div>
-                 )}
-                 
-                 <button 
-                    onClick={() => setIsEditingPlan(!isEditingPlan)}
-                    className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 sm:py-2 rounded-lg font-bold transition-all shadow-md ${isEditingPlan ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-amber-600 hover:bg-amber-500 text-white'}`}
-                >
-                    {isEditingPlan ? (
-                        <>
-                             <SaveIcon className="w-5 h-5" />
-                             <span>{t('save_return_log')}</span>
-                        </>
+        <div className="space-y-6 sm:space-y-8 relative">
+             {showCopySuccess && (
+                <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-2xl z-50 flex items-center gap-2 animate-bounce">
+                    <span className="text-xl">✅</span>
+                    <span className="font-bold">{t('copy_done')}</span>
+                </div>
+             )}
+
+             <div className="bg-gray-800 p-4 rounded-2xl shadow-md ring-1 ring-white/10 flex flex-col items-center justify-between gap-4">
+                 <div className="flex w-full flex-col sm:flex-row items-center justify-between gap-4">
+                    {!isEditingPlan ? (
+                        <div className="flex items-center justify-between w-full sm:w-auto gap-4 bg-gray-700/50 p-2 rounded-xl sm:bg-transparent sm:p-0">
+                            <button onClick={() => changeDate(dir === 'rtl' ? -1 : -1)} className="p-2 rounded-full hover:bg-gray-700 bg-gray-600 sm:bg-transparent"><ChevronLeftIcon /></button>
+                            <h2 className="text-lg sm:text-xl font-bold text-white whitespace-nowrap">{selectedDate.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', calendar: 'gregory' })}</h2>
+                            <button onClick={() => changeDate(dir === 'rtl' ? 1 : 1)} className="p-2 rounded-full hover:bg-gray-700 bg-gray-600 sm:bg-transparent"><ChevronRightIcon /></button>
+                        </div>
                     ) : (
-                        <>
-                             <BookOpenIcon className="w-5 h-5" />
-                             <span>{t('edit_base_plan')}</span>
-                        </>
+                        <div className="flex items-center justify-center w-full">
+                            <h2 className="text-xl font-bold text-amber-400 text-center">{t('edit_base_plan')}</h2>
+                        </div>
                     )}
-                </button>
+                    
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        {!isEditingPlan && (
+                             <button
+                                onClick={handleCopyYesterday}
+                                disabled={!hasDataToCopy}
+                                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors border shadow-sm ${
+                                    hasDataToCopy 
+                                    ? 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500 hover:border-blue-400' 
+                                    : 'bg-transparent text-gray-600 border-gray-700 cursor-not-allowed'
+                                }`}
+                                title={t('copy_yesterday')}
+                            >
+                                <CopyIcon className={`w-5 h-5 ${!hasDataToCopy && 'opacity-50'}`} />
+                                <span className="text-sm">{t('copy_yesterday')}</span>
+                            </button>
+                        )}
+                        <button 
+                            onClick={() => setIsEditingPlan(!isEditingPlan)}
+                            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-3 sm:py-2 rounded-lg font-bold transition-all shadow-md ${isEditingPlan ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-amber-600 hover:bg-amber-500 text-white'}`}
+                        >
+                            {isEditingPlan ? (
+                                <>
+                                    <SaveIcon className="w-5 h-5" />
+                                    <span>{t('save_return_log')}</span>
+                                </>
+                            ) : (
+                                <>
+                                    <BookOpenIcon className="w-5 h-5" />
+                                    <span>{t('edit_base_plan')}</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                 </div>
              </div>
 
              {isEditingPlan && (
