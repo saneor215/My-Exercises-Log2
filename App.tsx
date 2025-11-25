@@ -283,7 +283,7 @@ function AppContent() {
           {t('copyright_text', { year: new Date().getFullYear().toString() })}
         </p>
         <p className="text-xs text-gray-600">
-          {t('developed_by', { name: 'المطور' })}
+          {t('developed_by', { name: 'SaneoR' })}
         </p>
       </footer>
       
