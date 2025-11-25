@@ -191,8 +191,8 @@ function AppContent() {
 
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-900 text-gray-100 p-4 sm:p-6 lg:p-8 flex flex-col">
+      <div className="max-w-7xl mx-auto w-full flex-grow">
         <Navigation activeView={activeView} onNavigate={setActiveView} />
 
         <div className="mt-2">
@@ -277,6 +277,15 @@ function AppContent() {
            )}
         </div>
       </div>
+
+      <footer className="mt-12 border-t border-gray-800 pt-6 pb-4 text-center">
+        <p className="text-sm text-gray-500 mb-1">
+          {t('copyright_text', { year: new Date().getFullYear().toString() })}
+        </p>
+        <p className="text-xs text-gray-600">
+          {t('developed_by', { name: 'المطور' })}
+        </p>
+      </footer>
       
       <Modal
         isOpen={importSuccess}

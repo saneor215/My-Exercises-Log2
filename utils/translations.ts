@@ -185,6 +185,10 @@ export const translations = {
     import_success_title: 'تم بنجاح',
     import_success_msg: 'تم تحديث جميع التمارين، الأطعمة، والإعدادات بنجاح.',
     ok: 'موافق',
+
+    // Footer
+    copyright_text: 'جميع الحقوق محفوظة © {year}',
+    developed_by: 'تم التطوير بواسطة {name}'
   },
   en: {
     // Navigation
@@ -369,5 +373,9 @@ export const translations = {
     import_success_title: 'Success',
     import_success_msg: 'Backup restored successfully!',
     ok: 'OK',
+
+    // Footer
+    copyright_text: 'All rights reserved © {year}',
+    developed_by: 'Developed by {name}'
   }
 };
